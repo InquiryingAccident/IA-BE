@@ -63,4 +63,4 @@ target/
 Thumbs.db
 
 ### Develop Application Yml ###
-/src/main/resources/application.yml
+/src/main/resources/*.yml
