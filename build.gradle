@@ -34,7 +34,7 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-cache'
 
     // PostgreSQL
-    runtimeOnly 'org.postgresql:postgresql'
+    implementation 'org.postgresql:postgresql'
 
     // Redis
     implementation 'org.springframework.boot:spring-boot-starter-data-redis'
