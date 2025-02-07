@@ -17,6 +17,7 @@ public class CorsConfig {
     // 허용할 Origin 목록
     config.setAllowedOrigins(List.of(
         "http://localhost:8082",
+        "http://localhost:8080",
         "http://suh-project.synology.me:8082"
     ));
 

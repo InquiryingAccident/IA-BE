@@ -10,7 +10,6 @@ import io.swagger.v3.oas.models.security.SecurityScheme;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Profile;
 
 @OpenAPIDefinition(
     info = @Info(
@@ -22,7 +21,7 @@ import org.springframework.context.annotation.Profile;
     ),
     servers = {
         @Server(url = "http:suh-project.synology.me:8082", description = "메인 서버"),
-        @Server(url = "http://localhost:8082", description = "로컬 서버")
+        @Server(url = "http://localhost:8080", description = "로컬 서버")
     }
 )
 //@Profile("dev")
