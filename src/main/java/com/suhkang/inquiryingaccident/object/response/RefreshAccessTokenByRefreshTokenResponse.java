@@ -1,4 +1,4 @@
-package com.suhkang.inquiryingaccident.object.request;
+package com.suhkang.inquiryingaccident.object.response;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +13,6 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class RefreshTokenRequest {
-  private String refreshToken;
+public class RefreshAccessTokenByRefreshTokenResponse {
+  private String accessToken;
 }

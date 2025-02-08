@@ -7,6 +7,7 @@ import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.UUID;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -25,12 +26,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
   }
 
   @Override
-  protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response,
-      FilterChain filterChain) throws ServletException, IOException {
-    String token = resolveToken(request);
+  protected void doFilterInternal(
+      HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
+    String token = getTokenStrFromBearer(request);
     if (token != null && jwtTokenProvider.validateToken(token)) {
       // 토큰에서 memberId 추출
-      String memberId = jwtTokenProvider.getMemberIdFromToken(token);
+      UUID memberId = jwtTokenProvider.getMemberIdFromToken(token);
       // memberId를 기반으로 사용자 정보를 조회
       UserDetails userDetails = customUserDetailsService.loadUserByMemberId(memberId);
       if (userDetails != null) {
@@ -42,7 +43,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     filterChain.doFilter(request, response);
   }
 
-  private String resolveToken(HttpServletRequest request) {
+  private String getTokenStrFromBearer(HttpServletRequest request) {
     String bearerToken = request.getHeader("Authorization");
     if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
       return bearerToken.substring(7);

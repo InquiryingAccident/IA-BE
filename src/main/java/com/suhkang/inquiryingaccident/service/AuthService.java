@@ -1,81 +1,123 @@
 package com.suhkang.inquiryingaccident.service;
 
+import com.suhkang.inquiryingaccident.object.constants.AccountStatus;
+import com.suhkang.inquiryingaccident.object.constants.JwtTokenType;
+import com.suhkang.inquiryingaccident.object.constants.Role;
 import com.suhkang.inquiryingaccident.object.dao.Member;
 import com.suhkang.inquiryingaccident.object.dao.RefreshToken;
+import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
+import com.suhkang.inquiryingaccident.object.request.LoginRequest;
+import com.suhkang.inquiryingaccident.object.request.RefreshAccessTokenByRefreshTokenRequest;
 import com.suhkang.inquiryingaccident.object.request.SignupRequest;
-import com.suhkang.inquiryingaccident.object.constants.AccountStatus;
-import com.suhkang.inquiryingaccident.object.constants.Role;
+import com.suhkang.inquiryingaccident.object.response.LoginResponse;
+import com.suhkang.inquiryingaccident.object.response.RefreshAccessTokenByRefreshTokenResponse;
+import com.suhkang.inquiryingaccident.object.response.SignUpResponse;
 import com.suhkang.inquiryingaccident.repository.MemberRepository;
 import com.suhkang.inquiryingaccident.repository.RefreshTokenRepository;
+import com.suhkang.inquiryingaccident.util.JwtTokenProvider;
 import com.suhkang.inquiryingaccident.util.exception.CustomException;
 import com.suhkang.inquiryingaccident.util.exception.ErrorCode;
 import java.time.Instant;
-import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AuthService {
 
   private final RefreshTokenRepository refreshTokenRepository;
   private final MemberRepository memberRepository;
   private final PasswordEncoder passwordEncoder;
+  private final AuthenticationManager authenticationManager;
+  private final JwtTokenProvider jwtTokenProvider;
 
   // refresh 토큰 만료 시간 (밀리초)
   @Value("${jwt.refresh-exp-time}")
   private long refreshTokenValidityInMilliseconds;
 
-  public void signup(SignupRequest signupRequest) {
-    if (memberRepository.existsByNickname(signupRequest.getUsername())) {
+  public SignUpResponse signup(SignupRequest request) {
+
+    // 이메일 검증
+    if (memberRepository.existsByEmail(request.getEmail())) {
+      log.error("회원 이메일이 이미 존재합니다 : {}", request.getEmail());
       throw new CustomException(ErrorCode.MEMBER_ALREADY_EXISTS);
     }
+
+    // 닉네임 검증
+    if (memberRepository.existsByNickname(request.getNickname())) {
+      log.error("회원 닉네임이 이미 존재합니다 : {}", request.getNickname());
+      throw new CustomException(ErrorCode.MEMBER_ALREADY_EXISTS);
+    }
+
     Member member = Member.builder()
-        .nickname(signupRequest.getUsername())
-        .password(passwordEncoder.encode(signupRequest.getPassword()))
+        .email(request.getEmail())
+        .nickname(request.getNickname())
+        .password(passwordEncoder.encode(request.getPassword()))
         .roles(Set.of(Role.ROLE_USER))
         .accountStatus(AccountStatus.ACTIVE)
         .build();
-    memberRepository.save(member);
-  }
 
-  // 회원 로그인 시 새 리프레시 토큰 생성 (기존 토큰이 있다면 삭제)
-  public RefreshToken createRefreshToken(Member member) {
-    // 기존에 해당 회원의 리프레시 토큰이 있으면 삭제
-    refreshTokenRepository.findByMemberId(member.getMemberId())
-        .ifPresent(refreshTokenRepository::delete);
+    Member savedMember = memberRepository.save(member);
 
-    String token = UUID.randomUUID().toString();
-    Instant expiryDate = Instant.now().plusMillis(refreshTokenValidityInMilliseconds);
-    RefreshToken refreshToken = RefreshToken.builder()
-        .token(token)
-        .memberId(member.getMemberId())
-        .memberEmail(member.getEmail())
-        .expiryDate(expiryDate)
+    return SignUpResponse.builder()
+        .member(savedMember)
         .build();
-    return refreshTokenRepository.save(refreshToken);
   }
 
-  // refresh 토큰으로 DB에서 조회
-  public Optional<RefreshToken> findByRefreshToken(String token) {
-    return refreshTokenRepository.findByToken(token);
+  public LoginResponse login(LoginRequest request) {
+    // Authentication 객체 생성: 이메일/패시워드 -> principal/credentials
+    // -> DaoAuthenticationProvidersms UserDetailService.loadUserByUsername(principal) -> UserDetails 반환
+    Authentication authentication = authenticationManager.authenticate(
+        new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
+    );
+
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+    String accessToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.ACCESS);
+    String refreshToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.REFRESH);
+
+    return LoginResponse.builder()
+        .accessToken(accessToken)
+        .refreshToken(refreshToken)
+        .build();
   }
 
-  // 만료 여부를 검사하여 만료된 경우 삭제
-  public Optional<RefreshToken> verifyExpiration(RefreshToken token) {
-    if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
-      refreshTokenRepository.delete(token);
-      return Optional.empty();
+  public RefreshAccessTokenByRefreshTokenResponse refreshAccessTokenByRefreshToken(
+      RefreshAccessTokenByRefreshTokenRequest request
+  ) {
+    // refreshToken 검증
+    RefreshToken refreshToken = refreshTokenRepository.findByToken(request.getRefreshToken())
+        .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
+
+    // refreshToken 만료시 삭제 -> 만료된 리프레시 에러
+    if (refreshToken.getExpiryDate().compareTo(Instant.now()) < 0) {
+      refreshTokenRepository.delete(refreshToken);
+      throw new CustomException(ErrorCode.EXPIRED_REFRESH_TOKEN);
     }
-    return Optional.of(token);
+
+    // 새로운 accessToken 생성
+    CustomUserDetails userDetails = new CustomUserDetails(request.getMember());
+    Authentication authentication
+        = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    String newAccessToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.ACCESS);
+
+    return RefreshAccessTokenByRefreshTokenResponse.builder()
+        .accessToken(newAccessToken)
+        .build();
   }
 
   public void deleteByMemberId(UUID memberId) {
     refreshTokenRepository.findByMemberId(memberId)
         .ifPresent(refreshTokenRepository::delete);
   }
+
 }
