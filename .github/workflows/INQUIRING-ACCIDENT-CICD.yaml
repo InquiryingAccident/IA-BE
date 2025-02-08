@@ -27,6 +27,11 @@ jobs:
           mkdir -p src/main/resources  # 디렉토리 없으면 생성
           echo "${{ secrets.APPLICATION_YML }}" > src/main/resources/application.yml
 
+      - name: Create application-prod.yml from secret
+        run: |
+          mkdir -p src/main/resources  # 디렉토리 없으면 생성
+          echo "${{ secrets.APPLICATION_PROD_YML }}" > src/main/resources/application-prod.yml
+
       - name: Build with Gradle
         run: ./gradlew clean build -x test -Dspring.profiles.active=prod
 
