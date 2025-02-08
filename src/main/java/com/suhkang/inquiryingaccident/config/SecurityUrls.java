@@ -13,15 +13,10 @@ public class SecurityUrls {
    */
   public static final List<String> AUTH_WHITELIST = Arrays.asList(
       // API
-      "/api/auth/refresh",             // 리프레시 토큰
       "/api/auth/signup",              // 회원가입
       "/api/auth/login",               // 로그인
-      "/api/course/subjects/faculty",  // 교과목명 조회
-      "/api/landing/**",               // 랜딩페이지
-//      "/api/test/**",                // 테스트 API
-      "/api/member/signin",            // 회원가입
-      "/admin/auth/login",             // 관리자 로그인 API
-      "/api/sejong/subject/get-all",   // 교과목명 정보
+      "/api/auth/refresh",             // 리프레시 토큰
+      "/api/test/**",                  //FIXME: 테스트 API
 
       // Swagger
       "/docs/**",                      // Swagger UI
@@ -30,7 +25,8 @@ public class SecurityUrls {
       // WEB
       "/",                             // 관리자페이지 메인창
       "/login",                        // 관리자페이지 로그인창
-      "/error/**",                        // 에러 페이지
+      "/admin/auth/login",             // 관리자페이지 로그인 API
+      "/error/**",                     // 관리자페이지 에러 페이지
 
       // Static Resources
       "/css/**",                       // CSS 파일

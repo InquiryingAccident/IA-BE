@@ -9,6 +9,7 @@ import com.suhkang.inquiryingaccident.object.response.SignUpResponse;
 import com.suhkang.inquiryingaccident.repository.MemberRepository;
 import com.suhkang.inquiryingaccident.service.AuthService;
 import com.suhkang.inquiryingaccident.util.log.LogMethodInvocation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -20,11 +21,16 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
-public class AuthController {
+@Tag(
+    name = "인증 관리 API",
+    description = "인증 관리 API 제공"
+)
+public class AuthController implements AuthControllerDocs{
 
   private final AuthService authService;
   private final MemberRepository memberRepository;
 
+  @Override
   @PostMapping(value = "/login", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @LogMethodInvocation
   public ResponseEntity<LoginResponse> login(
@@ -32,6 +38,7 @@ public class AuthController {
     return ResponseEntity.ok(authService.login(loginRequest));
   }
 
+  @Override
   @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @LogMethodInvocation
   public ResponseEntity<SignUpResponse> signup(
@@ -39,6 +46,7 @@ public class AuthController {
     return ResponseEntity.ok(authService.signup(signupRequest));
   }
 
+  @Override
   @PostMapping(value = "/refresh", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @LogMethodInvocation
   public ResponseEntity<RefreshAccessTokenByRefreshTokenResponse> refreshAccessTokenByRefreshToken(

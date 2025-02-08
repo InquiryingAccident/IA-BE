@@ -1,24 +1,31 @@
 package com.suhkang.inquiryingaccident.controller;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 
 @Controller
-public class PageController {
+@RequestMapping("/admin")
+@Tag(
+		name = "관리자 페이지 관리",
+		description = "관리자 페이지 URL -> HTML 연결"
+)
+public class AdminPageController implements AdminPageControllerDocs{
 
 	@GetMapping("/")
 	public String indexPage() {
-		return "pages/dashboard";
+		return "admin/dashboard";
 	}
 
 	@GetMapping("/login")
 	public String loginPage() {
-		return "pages/login";
+		return "admin/login";
 	}
 
 	@GetMapping("/dashboard")
 	public String dashboardPage(Model model){
-		return "pages/dashboard";
+		return "admin/dashboard";
 	}
 }
