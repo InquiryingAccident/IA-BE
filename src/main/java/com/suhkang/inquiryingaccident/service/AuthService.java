@@ -19,10 +19,8 @@ import com.suhkang.inquiryingaccident.util.exception.CustomException;
 import com.suhkang.inquiryingaccident.util.exception.ErrorCode;
 import java.time.Instant;
 import java.util.Set;
-import java.util.UUID;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -40,10 +38,6 @@ public class AuthService {
   private final PasswordEncoder passwordEncoder;
   private final AuthenticationManager authenticationManager;
   private final JwtTokenProvider jwtTokenProvider;
-
-  // refresh 토큰 만료 시간 (밀리초)
-  @Value("${jwt.refresh-exp-time}")
-  private long refreshTokenValidityInMilliseconds;
 
   public SignUpResponse signup(SignupRequest request) {
 
@@ -76,7 +70,7 @@ public class AuthService {
 
   public LoginResponse login(LoginRequest request) {
     // Authentication 객체 생성: 이메일/패시워드 -> principal/credentials
-    // -> DaoAuthenticationProvidersms UserDetailService.loadUserByUsername(principal) -> UserDetails 반환
+    // -> DaoAuthenticationProviders -> UserDetailService.loadUserByUsername(principal) -> UserDetails 반환
     Authentication authentication = authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
     );
@@ -104,8 +98,10 @@ public class AuthService {
       throw new CustomException(ErrorCode.EXPIRED_REFRESH_TOKEN);
     }
 
-    // 새로운 accessToken 생성
-    CustomUserDetails userDetails = new CustomUserDetails(request.getMember());
+    // refreshToken -> memberID 추출 -> 새로운 accessToken 생성
+    Member member = memberRepository.findById(jwtTokenProvider.getMemberIdFromToken(request.getRefreshToken()))
+        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    CustomUserDetails userDetails = new CustomUserDetails(member);
     Authentication authentication
         = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     String newAccessToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.ACCESS);
@@ -113,11 +109,6 @@ public class AuthService {
     return RefreshAccessTokenByRefreshTokenResponse.builder()
         .accessToken(newAccessToken)
         .build();
-  }
-
-  public void deleteByMemberId(UUID memberId) {
-    refreshTokenRepository.findByMemberId(memberId)
-        .ifPresent(refreshTokenRepository::delete);
   }
 
 }
