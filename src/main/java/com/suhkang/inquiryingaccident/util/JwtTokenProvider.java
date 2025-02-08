@@ -1,6 +1,6 @@
 package com.suhkang.inquiryingaccident.util;
 
-import com.suhkang.inquiryingaccident.object.CustomUserDetails;
+import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

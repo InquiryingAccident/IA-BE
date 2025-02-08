@@ -1,6 +1,6 @@
 package com.suhkang.inquiryingaccident.repository;
 
-import com.suhkang.inquiryingaccident.object.Member;
+import com.suhkang.inquiryingaccident.object.dao.Member;
 import java.util.Optional;
 import java.util.UUID;
 import org.springframework.data.jpa.repository.JpaRepository;

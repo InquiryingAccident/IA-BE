@@ -1,7 +1,7 @@
 package com.suhkang.inquiryingaccident.service;
 
-import com.suhkang.inquiryingaccident.object.Member;
-import com.suhkang.inquiryingaccident.object.CustomUserDetails;
+import com.suhkang.inquiryingaccident.object.dao.Member;
+import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
 import com.suhkang.inquiryingaccident.repository.MemberRepository;
 import java.util.UUID;
 import lombok.RequiredArgsConstructor;

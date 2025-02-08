@@ -1,4 +1,4 @@
-package com.suhkang.inquiryingaccident.object;
+package com.suhkang.inquiryingaccident.object.dao;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -43,7 +43,7 @@ public class Member extends BaseEntity {
   private UUID memberId;
 
   @Column(unique = true)
-  private Long email;
+  private String email;
 
   private String password;
 

@@ -1,4 +1,4 @@
-package com.suhkang.inquiryingaccident.object;
+package com.suhkang.inquiryingaccident.object.request;
 
 import lombok.Getter;
 import lombok.Setter;

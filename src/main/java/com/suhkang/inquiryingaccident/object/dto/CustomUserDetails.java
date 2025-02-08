@@ -1,6 +1,7 @@
-package com.suhkang.inquiryingaccident.object;
+package com.suhkang.inquiryingaccident.object.dto;
 
 import com.suhkang.inquiryingaccident.object.constants.AccountStatus;
+import com.suhkang.inquiryingaccident.object.dao.Member;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import org.springframework.security.core.GrantedAuthority;

@@ -1,4 +1,4 @@
-package com.suhkang.inquiryingaccident.object;
+package com.suhkang.inquiryingaccident.object.dao;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.EntityListeners;

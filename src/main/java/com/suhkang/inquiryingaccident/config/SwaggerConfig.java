@@ -24,34 +24,32 @@ import org.springframework.context.annotation.Configuration;
         @Server(url = "http://localhost:8080", description = "로컬 서버")
     }
 )
-//@Profile("dev")
 @Configuration
 public class SwaggerConfig {
 
   @Bean
   public OpenAPI openAPI() {
-    // cookie 세션 인증 스키마 문서 선언
-    SecurityScheme cookieAuthScheme = new SecurityScheme()
-        .type(SecurityScheme.Type.APIKEY)
-        .in(SecurityScheme.In.COOKIE)
-        .name("JSESSIONID"); // 세션 쿠키 이름
+    // JWT Bearer 인증 스키마 선언
+    SecurityScheme jwtAuthScheme = new SecurityScheme()
+        .type(SecurityScheme.Type.HTTP)
+        .scheme("bearer")
+        .bearerFormat("JWT");
 
-    SecurityRequirement securityRequirement
-        = new SecurityRequirement().addList("sessionCookie");
+    // Swagger UI에서 기본적으로 적용할 보안 요구 사항 지정
+    SecurityRequirement securityRequirement = new SecurityRequirement().addList("bearerAuth");
 
     return new OpenAPI()
         .components(new Components()
-            .addSecuritySchemes("sessionCookie", cookieAuthScheme)
+            .addSecuritySchemes("bearerAuth", jwtAuthScheme)
         )
         .addSecurityItem(securityRequirement)
         .servers(List.of(
-                new io.swagger.v3.oas.models.servers.Server()
-                    .url("http://localhost:8090")
-                    .description("로컬 서버"),
-                new io.swagger.v3.oas.models.servers.Server()
-                    .url("http:suh-project.synology.me:8082")
-                    .description("메인 서버")
-            )
-        );
+            new io.swagger.v3.oas.models.servers.Server()
+                .url("http://localhost:8090")
+                .description("로컬 서버"),
+            new io.swagger.v3.oas.models.servers.Server()
+                .url("http:suh-project.synology.me:8082")
+                .description("메인 서버")
+        ));
   }
 }
