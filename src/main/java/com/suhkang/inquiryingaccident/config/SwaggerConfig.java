@@ -38,7 +38,7 @@ public class SwaggerConfig {
         .scheme("bearer")
         .bearerFormat("JWT");
 
-    // Swagger UI에서 기본적으로 적용할 보안 요구 사항 지정
+    // Swagger UI 에서 기본적으로 적용할 보안 요구 사항 지정
     SecurityRequirement securityRequirement = new SecurityRequirement().addList("bearerAuth");
 
     return new OpenAPI()
@@ -54,10 +54,10 @@ public class SwaggerConfig {
                 .url("https://api.test.plane-accident-finder.world")
                 .description("테스트 서버 (HTTPS)"),
             new io.swagger.v3.oas.models.servers.Server()
-                .url("http://suh-project.synology.me:8082")
+                .url("https://suh-project.synology.me:8082")
                 .description("메인 서버 (HTTP)"),
             new io.swagger.v3.oas.models.servers.Server()
-                .url("http://suh-project.synology.me:8083")
+                .url("https://suh-project.synology.me:8083")
                 .description("테스트 서버 (HTTP)"),
             new io.swagger.v3.oas.models.servers.Server()
                 .url("http://localhost:8080")
