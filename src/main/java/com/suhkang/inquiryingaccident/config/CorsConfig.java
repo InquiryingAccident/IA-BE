@@ -16,9 +16,10 @@ public class CorsConfig {
 
     // 허용할 Origin 목록
     config.setAllowedOrigins(List.of(
-        "http://localhost:8082",
-        "http://localhost:8080",
-        "http://suh-project.synology.me:8082"
+        "http://localhost:8082", // PROD 서버 내
+        "http://localhost:8080", // LOCAL 개발
+        "http://suh-project.synology.me:8082",    // PROD 서버 내
+        "https://api.plane-accident-finder.world" // PROD 서버 내
     ));
 
     // 모든 HTTP Method 허용 (GET, POST, PUT, DELETE 등)

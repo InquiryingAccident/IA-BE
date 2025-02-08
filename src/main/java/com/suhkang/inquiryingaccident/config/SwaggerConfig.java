@@ -20,7 +20,10 @@ import org.springframework.context.annotation.Configuration;
         version = "1.0v"
     ),
     servers = {
-        @Server(url = "http:suh-project.synology.me:8082", description = "메인 서버"),
+        @Server(url = "https://api.plane-accident-finder.world", description = "메인 서버 (HTTPS)"),
+        @Server(url = "https://api.test.plane-accident-finder.world", description = "테스트 서버 (HTTPS)"),
+        @Server(url = "http:suh-project.synology.me:8082", description = "메인 서버 (HTTP) "),
+        @Server(url = "http:suh-project.synology.me:8083", description = "테스트 서버 (HTTP) "),
         @Server(url = "http://localhost:8080", description = "로컬 서버")
     }
 )
@@ -45,11 +48,20 @@ public class SwaggerConfig {
         .addSecurityItem(securityRequirement)
         .servers(List.of(
             new io.swagger.v3.oas.models.servers.Server()
-                .url("http://localhost:8090")
-                .description("로컬 서버"),
+                .url("https://api.plane-accident-finder.world")
+                .description("메인 서버 (HTTPS)"),
             new io.swagger.v3.oas.models.servers.Server()
-                .url("http:suh-project.synology.me:8082")
-                .description("메인 서버")
+                .url("https://api.test.plane-accident-finder.world")
+                .description("테스트 서버 (HTTPS)"),
+            new io.swagger.v3.oas.models.servers.Server()
+                .url("http://suh-project.synology.me:8082")
+                .description("메인 서버 (HTTP)"),
+            new io.swagger.v3.oas.models.servers.Server()
+                .url("http://suh-project.synology.me:8083")
+                .description("테스트 서버 (HTTP)"),
+            new io.swagger.v3.oas.models.servers.Server()
+                .url("http://localhost:8080")
+                .description("로컬 서버")
         ));
   }
 }
