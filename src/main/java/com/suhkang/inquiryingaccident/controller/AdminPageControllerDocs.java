@@ -12,6 +12,7 @@ public interface AdminPageControllerDocs {
       @ApiChangeLog(
           date = "2025.02.09",
           author = Author.SUHSAECHAN,
+          issueNumber = 4,
           description = "관리자 페이지 대시보드 연결 구현"
       )
   })
@@ -25,6 +26,7 @@ public interface AdminPageControllerDocs {
       @ApiChangeLog(
           date = "2025.02.09",
           author = Author.SUHSAECHAN,
+          issueNumber = 4,
           description = "관리자 로그인 페이지 연결 구현"
       )
   })
@@ -38,6 +40,7 @@ public interface AdminPageControllerDocs {
       @ApiChangeLog(
           date = "2025.02.09",
           author = Author.SUHSAECHAN,
+          issueNumber = 4,
           description = "관리자 대시보드 페이지 연결 구현"
       )
   })

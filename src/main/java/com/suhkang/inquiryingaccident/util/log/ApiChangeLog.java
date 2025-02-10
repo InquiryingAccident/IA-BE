@@ -15,4 +15,7 @@ public @interface ApiChangeLog {
   Author author();
 
   String description();
+
+  // 이슈번호 (기본값 -1 미지정, 양수값이면 이슈칼럼 링크추가)
+  int issueNumber() default -1;
 }

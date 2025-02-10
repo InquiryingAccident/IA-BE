@@ -25,6 +25,7 @@ public class SecurityUrls {
       // WEB
       "/",                             // 관리자페이지 메인창
       "/login",                        // 관리자페이지 로그인창
+      "/auth/login",                   // 관리자페이지 로그인창
       "/admin/auth/login",             // 관리자페이지 로그인 API
       "/error/**",                     // 관리자페이지 에러 페이지
 

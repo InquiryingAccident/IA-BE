@@ -19,6 +19,7 @@ public interface AuthControllerDocs {
       @ApiChangeLog(
           date = "2025.02.09",
           author = Author.SUHSAECHAN,
+          issueNumber = 4,
           description = "로그인 기능 구현"
       )
   })
@@ -50,6 +51,7 @@ public interface AuthControllerDocs {
       @ApiChangeLog(
           date = "2025.02.09",
           author = Author.SUHSAECHAN,
+          issueNumber = 4,
           description = "회원가입 기능 구현"
       )
   })
@@ -81,6 +83,7 @@ public interface AuthControllerDocs {
       @ApiChangeLog(
           date = "2025.02.09",
           author = Author.SUHSAECHAN,
+          issueNumber = 4,
           description = "액세스 토큰 갱신 기능 구현"
       )
   })

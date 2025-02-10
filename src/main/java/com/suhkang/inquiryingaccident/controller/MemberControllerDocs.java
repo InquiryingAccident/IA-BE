@@ -15,6 +15,7 @@ public interface MemberControllerDocs {
       @ApiChangeLog(
           date = "2025.02.09",
           author = Author.SUHSAECHAN,
+          issueNumber = 4,
           description = "내 정보 조회 기능 구현"
       )
   })
