@@ -38,8 +38,8 @@ import lombok.experimental.SuperBuilder;
 public class Member extends BaseEntity {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.AUTO)
-  @Column(columnDefinition = "uuid DEFAULT uuid_generate_v4()", updatable = false, nullable = false)
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(updatable = false, nullable = false)
   private UUID memberId;
 
   @Column(unique = true)

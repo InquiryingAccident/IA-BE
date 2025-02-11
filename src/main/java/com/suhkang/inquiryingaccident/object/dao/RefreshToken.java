@@ -24,8 +24,9 @@ import lombok.experimental.SuperBuilder;
 public class RefreshToken {
 
   @Id
-  @GeneratedValue(strategy = GenerationType.IDENTITY)
-  private Long id;
+  @GeneratedValue(strategy = GenerationType.UUID)
+  @Column(updatable = false, nullable = false)
+  private UUID refreshTokenId;
 
   // 리프레시 토큰 값 (유일)
   @Column(nullable = false, unique = true)
