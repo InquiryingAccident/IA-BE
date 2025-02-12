@@ -1,5 +1,6 @@
 package com.suhkang.inquiryingaccident.config;
 
+import java.util.Collections;
 import java.util.List;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -14,13 +15,15 @@ public class CorsConfig {
   public CorsConfigurationSource corsConfigurationSource() {
     CorsConfiguration config = new CorsConfiguration();
 
-    // 허용할 Origin 목록
-    config.setAllowedOrigins(List.of(
-        "http://localhost:8082", // PROD 서버 내
-        "http://localhost:8080", // LOCAL 개발
-        "http://suh-project.synology.me:8082",    // PROD 서버 내
-        "https://api.plane-accident-finder.world" // PROD 서버 내
-    ));
+    // 허용할 Origin 목록 : 앱 환경 모든 Origin 허용함
+//    config.setAllowedOrigins(List.of(
+//        "http://localhost:8082", // PROD 서버 내
+//        "http://localhost:8080", // LOCAL 개발
+//        "http://suh-project.synology.me:8082",    // PROD 서버 내
+//        "https://api.plane-accident-finder.world" // PROD 서버 내
+//    ));
+
+    config.setAllowedOriginPatterns(Collections.singletonList("*")); // 모든 Origin 허용
 
     // 모든 HTTP Method 허용 (GET, POST, PUT, DELETE 등)
     config.setAllowedMethods(List.of("*"));
