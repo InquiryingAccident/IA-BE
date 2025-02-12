@@ -50,4 +50,31 @@ public class CommonUtil {
 			throw new RuntimeException("파일 해시 계산 실패", e);
 		}
 	}
+
+
+	/*
+	null 또는 "null"/빈 문자열을 빈 문자열("")로 치환
+	 */
+	public static String nvl(Object str) {
+		return nvl(String.valueOf(str), "");
+	}
+
+	public static String nvl(String str) {
+		return nvl(str, "");
+	}
+
+	public static String nvl(Object str, String str1) {
+		return nvl(String.valueOf(str), str1);
+	}
+
+	public static String nvl(String str, String str1) {
+		if (null == str) {
+			return str1;
+		} else if ("null".equals(str) == true) {
+			return str1;
+		} else if ("".equals(str) == true) {
+			return str1;
+		}
+		return str;
+	}
 }
