@@ -17,6 +17,7 @@ public interface PlaneAccidentControllerDocs {
       @ApiChangeLog(
           date = "2025.02.13",
           author = Author.SUHSAECHAN,
+          issueNumber = 9,
           description = "비행기 사고 정보 조회 기능 구현"
       )
   })
