@@ -2,7 +2,6 @@ package com.suhkang.inquiryingaccident.global.init;
 
 import static com.suhkang.inquiryingaccident.global.util.LogUtil.lineLog;
 import static com.suhkang.inquiryingaccident.global.util.LogUtil.logServerInitDuration;
-
 import com.suhkang.inquiryingaccident.global.docs.GithubIssueService;
 import com.suhkang.inquiryingaccident.service.PlaneAccidentService;
 import java.time.LocalDateTime;
@@ -30,7 +29,7 @@ public class PlaneAccidentFinderInitiation implements ApplicationRunner {
 		// Github 이슈 업데이트
 		githubIssueService.syncGithubIssues();
 
-		// Plane Accident DB 업데이트
+		// Plane Accident DB 업데이트 (한번만 수행)
 		databaseInitializationService.initializeOrUpdateDatabase();
 
 		logServerInitDuration(startTime);

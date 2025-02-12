@@ -41,8 +41,6 @@ public class DatabaseInitializationService {
    * 각 연도별 작업은 별도의 트랜잭션으로 처리됩니다.
    */
   public void initializeOrUpdateDatabase() {
-
-    // MIN_YEAR부터 CURRENT_YEAR까지 각 연도의 작업을 Callable로 생성
     List<Callable<Void>> tasks = IntStream.rangeClosed(MIN_YEAR, CURRENT_YEAR)
         .mapToObj(year -> (Callable<Void>) () -> {
           processYear(year);
@@ -51,7 +49,6 @@ public class DatabaseInitializationService {
         .collect(Collectors.toList());
 
     try {
-      // 모든 작업을 병렬 실행하고, 완료될 때까지 대기
       List<Future<Void>> futures = executorService.invokeAll(tasks);
       for (Future<Void> future : futures) {
         future.get();
@@ -65,9 +62,8 @@ public class DatabaseInitializationService {
 
   /**
    * 연도별 DB 상태를 확인하여,
-   *  - 상태 레코드가 없으면 전체 스크래핑 실행,
-   *  - 상태 레코드가 있으나 complete가 false이면 기존 데이터를 삭제하고 재스크래핑,
-   *  - 현재 연도라면 웹사이트 건수와 DB 건수를 비교하여 증분 스크래핑을 수행합니다.
+   *  - 상태 레코드가 없거나 complete가 false이면 전체 스크래핑 실행,
+   *  - complete가 true이면 스크래핑을 건너뜁니다.
    * 각 작업은 별도의 트랜잭션 내에서 실행됩니다.
    *
    * @param year 처리할 연도
@@ -75,32 +71,22 @@ public class DatabaseInitializationService {
   @Transactional
   public void processYear(int year) {
     AccidentDBYearStatus status = accidentDBYearStatusRepository.findByYear(year).orElse(null);
-    if (status == null) {
-      log.info("연도 {}: 상태 레코드 없음 → 전체 스크래핑 실행", year);
-      runYearScraping(year);
-    } else {
-      if (!status.isComplete()) {
+    if (status == null || !status.isComplete()) {
+      if (status != null && !status.isComplete()) {
         log.info("연도 {}: 파싱 상태 미완료(PENDING) → 기존 데이터 삭제 후 재스크래핑", year);
         deleteYearRecords(year);
-        runYearScraping(year);
       } else {
-        log.info("연도 {}: 이미 파싱 완료됨 (complete).", year);
-        if (year == CURRENT_YEAR) {
-          int websiteCount = fetchWebsiteRecordCountForYear(year);
-          int dbCount = accidentRepository.countByAccidentYear(year);
-          if (dbCount < websiteCount) {
-            log.info("연도 {}: DB 기록 {}건, 웹사이트 기록 {}건 → 증분 스크래핑 실행", year, dbCount, websiteCount);
-            runIncrementalScrapingForYear(year, dbCount);
-          } else {
-            log.info("연도 {}: DB 기록과 웹사이트 기록이 동일 → 업데이트 불필요", year);
-          }
-        }
+        log.info("연도 {}: 상태 레코드 없음 → 전체 스크래핑 실행", year);
       }
+      runYearScraping(year);
+    } else {
+      // 이미 완료된 연도는 스크래핑하지 않습니다.
+      log.info("연도 {}: 이미 파싱 완료됨 (complete). 스크래핑 건너뜀", year);
     }
   }
 
   /**
-   * 연도별 전체 스크래핑 실행
+   * 연도별 전체 스크래핑 실행 및 DB 상태 업데이트
    */
   private void runYearScraping(int year) {
     try {
@@ -109,23 +95,25 @@ public class DatabaseInitializationService {
       int total = accidentRepository.countByAccidentYear(year);
       int success = accidentRepository.countByAccidentYearAndCommonStatus(year, CommonStatus.SUCCESS);
       int failure = accidentRepository.countByAccidentYearAndCommonStatus(year, CommonStatus.FAILURE);
-      AccidentDBYearStatus status = AccidentDBYearStatus.builder()
-          .year(year)
-          .totalRecords(total)
-          .successCount(success)
-          .failureCount(failure)
-          .complete(true)
-          .lastUpdated(LocalDateTime.now())
-          .build();
+
+      // 기존 레코드가 있으면 가져오고, 없으면 새로 생성
+      AccidentDBYearStatus status = accidentDBYearStatusRepository.findByYear(year)
+          .orElse(AccidentDBYearStatus.builder().year(year).build());
+
+      status.setTotalRecords(total);
+      status.setSuccessCount(success);
+      status.setFailureCount(failure);
+      status.setComplete(true);
+      status.setLastUpdated(LocalDateTime.now());
+
       accidentDBYearStatusRepository.save(status);
       log.info("연도 {} 스크래핑 완료. 총 {}건 (SUCCESS {}건, FAILURE {}건)", year, total, success, failure);
     } catch (Exception e) {
       log.error("연도 {} 스크래핑 중 에러 발생: {}", year, e.getMessage());
-      AccidentDBYearStatus status = AccidentDBYearStatus.builder()
-          .year(year)
-          .complete(false)
-          .lastUpdated(LocalDateTime.now())
-          .build();
+      AccidentDBYearStatus status = accidentDBYearStatusRepository.findByYear(year)
+          .orElse(AccidentDBYearStatus.builder().year(year).build());
+      status.setComplete(false);
+      status.setLastUpdated(LocalDateTime.now());
       accidentDBYearStatusRepository.save(status);
     }
   }
@@ -141,36 +129,12 @@ public class DatabaseInitializationService {
 
   /**
    * 웹사이트에서 해당 연도의 총 사고 건수를 가져오는 메서드
-   * 실제 구현에서는 Jsoup 등을 사용하여 페이지 상의 "25 occurrences" 등의 값을 파싱합니다.
-   * 여기서는 예시로 25를 반환하도록 하였습니다.
+   * (예시로 25를 반환)
    *
    * @param year 해당 연도
-   * @return 사고 건수 (예시: 25)
+   * @return 사고 건수 (예: 25)
    */
   private int fetchWebsiteRecordCountForYear(int year) {
-    // TODO: 실제 스크래핑 로직 구현 (예: Jsoup으로 페이지 파싱)
     return 25;
-  }
-
-  /**
-   * 현재 연도에 대해 DB에 저장된 건수 이후의 사고만 파싱하는 증분 스크래핑
-   *
-   * @param year 현재 연도
-   * @param existingCount DB에 이미 저장된 사고 건수
-   */
-  private void runIncrementalScrapingForYear(int year, int existingCount) {
-    accidentScrapingService.scrapeYear(year);
-    int total = accidentRepository.countByAccidentYear(year);
-    int success = accidentRepository.countByAccidentYearAndCommonStatus(year, CommonStatus.SUCCESS);
-    int failure = accidentRepository.countByAccidentYearAndCommonStatus(year, CommonStatus.FAILURE);
-    AccidentDBYearStatus status = accidentDBYearStatusRepository.findByYear(year)
-        .orElse(AccidentDBYearStatus.builder().year(year).build());
-    status.setTotalRecords(total);
-    status.setSuccessCount(success);
-    status.setFailureCount(failure);
-    status.setLastUpdated(LocalDateTime.now());
-    status.setComplete(true);
-    accidentDBYearStatusRepository.save(status);
-    log.info("연도 {} 증분 업데이트 완료. DB 기록 {}건 (SUCCESS {}건, FAILURE {}건)", year, total, success, failure);
   }
 }
