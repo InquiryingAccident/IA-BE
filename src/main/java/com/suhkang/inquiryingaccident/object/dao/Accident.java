@@ -1,6 +1,7 @@
 package com.suhkang.inquiryingaccident.object.dao;
 
 import com.suhkang.inquiryingaccident.object.constants.AircraftRegistrationCode;
+import com.suhkang.inquiryingaccident.object.constants.CommonStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -31,31 +32,29 @@ public class Accident {
   @Column(updatable = false, nullable = false)
   private UUID accidentId;
 
-  @Column(columnDefinition = "text")
   private String wikibaseId;
 
   private LocalDate accidentDate;
 
-  @Column(columnDefinition = "text")
   private String aircraftType;
 
-  @Column(columnDefinition = "text")
   private String registration;
 
-  @Column(columnDefinition = "text")
   private String operator;
 
   private Integer fatalities;
 
-  @Column(columnDefinition = "text")
   private String location;
 
   @Enumerated(EnumType.STRING)
-  @Column(columnDefinition = "text")
   private AircraftRegistrationCode aircraftRegistrationCode;
 
-  @Column(columnDefinition = "text")
   private String damage;
 
   private Boolean hasPreliminaryReport;
+
+  private String errorMessage;
+
+  @Enumerated(EnumType.STRING)
+  private CommonStatus commonStatus;
 }
