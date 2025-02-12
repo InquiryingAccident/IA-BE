@@ -1,6 +1,6 @@
-package com.suhkang.inquiryingaccident.util.log;
+package com.suhkang.inquiryingaccident.global.log;
 
-import com.suhkang.inquiryingaccident.util.exception.ErrorCode;
+import com.suhkang.inquiryingaccident.global.exception.ErrorCode;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.Arrays;
 import lombok.RequiredArgsConstructor;

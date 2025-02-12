@@ -1,9 +1,9 @@
 package com.suhkang.inquiryingaccident.config;
 
 import com.suhkang.inquiryingaccident.service.CustomUserDetailsService;
-import com.suhkang.inquiryingaccident.util.JwtTokenProvider;
-import com.suhkang.inquiryingaccident.util.filter.CustomAuthenticationEntryPoint;
-import com.suhkang.inquiryingaccident.util.filter.JwtAuthenticationFilter;
+import com.suhkang.inquiryingaccident.global.util.JwtTokenProvider;
+import com.suhkang.inquiryingaccident.global.filter.CustomAuthenticationEntryPoint;
+import com.suhkang.inquiryingaccident.global.filter.JwtAuthenticationFilter;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;

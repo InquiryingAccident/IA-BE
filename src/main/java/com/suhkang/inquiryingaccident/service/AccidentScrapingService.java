@@ -1,12 +1,15 @@
 package com.suhkang.inquiryingaccident.service;
 
 import com.suhkang.inquiryingaccident.object.constants.AircraftRegistrationCode;
+import com.suhkang.inquiryingaccident.object.constants.CommonStatus;
 import com.suhkang.inquiryingaccident.object.dao.Accident;
 import com.suhkang.inquiryingaccident.repository.AccidentRepository;
 import java.io.IOException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.Locale;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
@@ -125,7 +128,7 @@ public class AccidentScrapingService {
    * </ol>
    *
    * @param row HTML tr 요소
-   * @return Accident 엔티티 (파싱 실패 시 null)
+   * @return Accident 엔티티 (파싱 오류가 있더라도 errorMessage와 함께 반환)
    */
   private Accident parseAccidentRow(Element row) {
     try {
@@ -135,14 +138,17 @@ public class AccidentScrapingService {
         return null;
       }
 
+      // builder를 사용하여 Accident 객체 생성
+      Accident.AccidentBuilder accidentBuilder = Accident.builder();
+
       // 1. 사고 날짜와 wikibase id
       String dateStr = cells.get(0).text().trim();
       log.debug("Accident date string: {}", dateStr);
-      // 날짜 포맷: "2 Jan 2025" → Locale.ENGLISH 지정
-      DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH);
-      LocalDate accidentDate = LocalDate.parse(dateStr, formatter);
-      log.debug("Parsed accident date: {}", accidentDate);
+      // 날짜 파싱 시도 (문제 발생 시 fallback 처리)
+      LocalDate accidentDate = parseAccidentDate(dateStr, accidentBuilder);
+      accidentBuilder.accidentDate(accidentDate);
 
+      // wikibase id 추출
       String wikibaseId = null;
       Element link = cells.get(0).selectFirst("a");
       if (link != null) {
@@ -152,12 +158,15 @@ public class AccidentScrapingService {
           wikibaseId = parts[parts.length - 1];
         }
       }
-      log.debug("Extracted wikibaseId: {}", wikibaseId);
+      accidentBuilder.wikibaseId(wikibaseId);
 
       // 2. 항공기 기종, 등록번호, 운영자
       String aircraftType = cells.get(1).text().trim();
       String registration = cells.get(2).text().trim();
       String operator = cells.get(3).text().trim();
+      accidentBuilder.aircraftType(aircraftType)
+          .registration(registration)
+          .operator(operator);
       log.debug("AircraftType: {}, Registration: {}, Operator: {}",
           aircraftType, registration, operator);
 
@@ -169,10 +178,12 @@ public class AccidentScrapingService {
       } catch (NumberFormatException e) {
         log.warn("Fatalities 파싱 실패: '{}'", fatalitiesStr);
       }
+      accidentBuilder.fatalities(fatalities);
       log.debug("Parsed fatalities: {}", fatalities);
 
       // 4. 위치
       String location = cells.get(5).text().trim();
+      accidentBuilder.location(location);
       log.debug("Location: {}", location);
 
       // 5. 국기 이미지에서 국가 코드 추출 (문자열 추출)
@@ -191,10 +202,12 @@ public class AccidentScrapingService {
 
       // 6. 피해 정도
       String damage = cells.get(7).text().trim();
+      accidentBuilder.damage(damage);
       log.debug("Damage: {}", damage);
 
       // 7. 예비 조사 보고서 아이콘 존재 여부
       boolean hasPreliminaryReport = cells.get(8).selectFirst("img") != null;
+      accidentBuilder.hasPreliminaryReport(hasPreliminaryReport);
       log.debug("Has preliminary report: {}", hasPreliminaryReport);
 
       // 문자열 countryCode -> AircraftRegistrationCode Enum 변환
@@ -206,22 +219,73 @@ public class AccidentScrapingService {
           log.warn("등록 코드 '{}' 를 매핑하는 Enum을 찾을 수 없음", countryCode);
         }
       }
+      accidentBuilder.aircraftRegistrationCode(registrationCode);
 
-      return Accident.builder()
-          .wikibaseId(wikibaseId)
-          .accidentDate(accidentDate)
-          .aircraftType(aircraftType)
-          .registration(registration)
-          .operator(operator)
-          .fatalities(fatalities)
-          .location(location)
-          .aircraftRegistrationCode(registrationCode)
-          .damage(damage)
-          .hasPreliminaryReport(hasPreliminaryReport)
-          .build();
+      // 파싱 과정 중 별도의 오류가 없었다면 commonStatus를 SUCCESS로 설정
+      if (accidentBuilder.build().getCommonStatus() == null) {
+        accidentBuilder.commonStatus(CommonStatus.SUCCESS);
+      }
+
+      return accidentBuilder.build();
     } catch (Exception e) {
       log.error("사고 행 파싱 중 에러: {}", row.text(), e);
-      return null;
+      // 파싱 중 전역적 에러 발생 시 errorMessage와 함께 FAILURE 상태로 Accident 객체 생성
+      return Accident.builder()
+          .errorMessage("파싱 오류: " + e.getMessage())
+          .commonStatus(CommonStatus.FAILURE)
+          .build();
+    }
+  }
+
+  /**
+   * 날짜 문자열을 파싱합니다.
+   * 원래 포맷("d MMM yyyy")으로 파싱 시도 후 실패하면,
+   * 문자열 내 연도와 월(있는 경우)을 추출하여 해당 월의 1일 또는 월 정보가 없으면 1월 1일을 반환합니다.
+   * 에러 발생 시, accidentBuilder에 errorMessage와 commonStatus = FAILURE 를 기록합니다.
+   *
+   * @param dateStr 날짜 문자열 (예: "2 Jan 2025", "xx Jul 1971", "unk. date 1972")
+   * @param accidentBuilder Accident 객체 빌더 (에러 메시지 기록용)
+   * @return 파싱된 LocalDate 객체
+   */
+  private LocalDate parseAccidentDate(String dateStr, Accident.AccidentBuilder accidentBuilder) {
+    DateTimeFormatter formatter = DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH);
+    try {
+      // 정상적인 포맷이면 그대로 파싱
+      return LocalDate.parse(dateStr, formatter);
+    } catch (Exception e) {
+      log.warn("날짜 포맷 파싱 실패: '{}'. 에러: {}", dateStr, e.getMessage());
+      // 정규표현식을 통해 연도(4자리) 추출
+      Pattern yearPattern = Pattern.compile("(\\d{4})");
+      Matcher yearMatcher = yearPattern.matcher(dateStr);
+      int year;
+      if (yearMatcher.find()) {
+        year = Integer.parseInt(yearMatcher.group(1));
+      } else {
+        // 연도 정보가 없으면 더 이상 진행할 수 없으므로 예외 발생
+        throw new RuntimeException("연도 정보 없음: " + dateStr, e);
+      }
+      // 월 정보 추출 (영어 약어)
+      int month = 1; // 기본값: 1월
+      Pattern monthPattern = Pattern.compile("(?i)(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)");
+      Matcher monthMatcher = monthPattern.matcher(dateStr);
+      if (monthMatcher.find()) {
+        String monthStr = monthMatcher.group(1);
+        try {
+          // "1 {monthStr} {year}"로 파싱하여 월 값 추출
+          month = LocalDate.parse("1 " + monthStr + " " + year, DateTimeFormatter.ofPattern("d MMM yyyy", Locale.ENGLISH))
+              .getMonthValue();
+        } catch (Exception ex) {
+          log.warn("월 파싱 실패: '{}', 기본값 1월 사용", monthStr);
+          month = 1;
+        }
+      }
+      LocalDate fallbackDate = LocalDate.of(year, month, 1);
+      String errMsg = "날짜 파싱 오류: 입력값 '" + dateStr + "' -> 대체값 " + fallbackDate;
+      log.warn(errMsg);
+      // 에러 메시지와 상태 업데이트
+      accidentBuilder.errorMessage(errMsg);
+      accidentBuilder.commonStatus(CommonStatus.FAILURE);
+      return fallbackDate;
     }
   }
 }

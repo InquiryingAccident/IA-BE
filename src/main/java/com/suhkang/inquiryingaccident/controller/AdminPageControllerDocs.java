@@ -1,8 +1,8 @@
 package com.suhkang.inquiryingaccident.controller;
 
 import com.suhkang.inquiryingaccident.object.constants.Author;
-import com.suhkang.inquiryingaccident.util.log.ApiChangeLog;
-import com.suhkang.inquiryingaccident.util.log.ApiChangeLogs;
+import com.suhkang.inquiryingaccident.global.docs.ApiChangeLog;
+import com.suhkang.inquiryingaccident.global.docs.ApiChangeLogs;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.ui.Model;
 

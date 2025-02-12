@@ -1,4 +1,4 @@
-package com.suhkang.inquiryingaccident.util.exception;
+package com.suhkang.inquiryingaccident.global.exception;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;

@@ -1,9 +1,9 @@
-package com.suhkang.inquiryingaccident.util;
+package com.suhkang.inquiryingaccident.global.util;
 
 import com.suhkang.inquiryingaccident.object.constants.JwtTokenType;
 import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
-import com.suhkang.inquiryingaccident.util.exception.CustomException;
-import com.suhkang.inquiryingaccident.util.exception.ErrorCode;
+import com.suhkang.inquiryingaccident.global.exception.CustomException;
+import com.suhkang.inquiryingaccident.global.exception.ErrorCode;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.Jwts;

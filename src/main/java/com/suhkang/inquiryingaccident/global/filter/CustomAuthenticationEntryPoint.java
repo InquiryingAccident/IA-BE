@@ -1,4 +1,4 @@
-package com.suhkang.inquiryingaccident.util.filter;
+package com.suhkang.inquiryingaccident.global.filter;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

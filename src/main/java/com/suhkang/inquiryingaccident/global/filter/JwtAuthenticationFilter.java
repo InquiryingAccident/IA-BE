@@ -1,7 +1,7 @@
-package com.suhkang.inquiryingaccident.util.filter;
+package com.suhkang.inquiryingaccident.global.filter;
 
 import com.suhkang.inquiryingaccident.service.CustomUserDetailsService;
-import com.suhkang.inquiryingaccident.util.JwtTokenProvider;
+import com.suhkang.inquiryingaccident.global.util.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;

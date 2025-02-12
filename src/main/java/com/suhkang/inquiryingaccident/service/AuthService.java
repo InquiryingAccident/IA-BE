@@ -14,9 +14,9 @@ import com.suhkang.inquiryingaccident.object.response.RefreshAccessTokenByRefres
 import com.suhkang.inquiryingaccident.object.response.SignUpResponse;
 import com.suhkang.inquiryingaccident.repository.MemberRepository;
 import com.suhkang.inquiryingaccident.repository.RefreshTokenRepository;
-import com.suhkang.inquiryingaccident.util.JwtTokenProvider;
-import com.suhkang.inquiryingaccident.util.exception.CustomException;
-import com.suhkang.inquiryingaccident.util.exception.ErrorCode;
+import com.suhkang.inquiryingaccident.global.util.JwtTokenProvider;
+import com.suhkang.inquiryingaccident.global.exception.CustomException;
+import com.suhkang.inquiryingaccident.global.exception.ErrorCode;
 import java.time.Instant;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;

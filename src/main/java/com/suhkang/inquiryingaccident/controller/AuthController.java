@@ -8,7 +8,7 @@ import com.suhkang.inquiryingaccident.object.response.RefreshAccessTokenByRefres
 import com.suhkang.inquiryingaccident.object.response.SignUpResponse;
 import com.suhkang.inquiryingaccident.repository.MemberRepository;
 import com.suhkang.inquiryingaccident.service.AuthService;
-import com.suhkang.inquiryingaccident.util.log.LogMethodInvocation;
+import com.suhkang.inquiryingaccident.global.log.LogMethodInvocation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;

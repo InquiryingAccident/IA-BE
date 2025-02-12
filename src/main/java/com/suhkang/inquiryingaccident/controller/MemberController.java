@@ -3,7 +3,7 @@ package com.suhkang.inquiryingaccident.controller;
 import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
 import com.suhkang.inquiryingaccident.object.response.MyInfoResponse;
 import com.suhkang.inquiryingaccident.service.MemberService;
-import com.suhkang.inquiryingaccident.util.log.LogMethodInvocation;
+import com.suhkang.inquiryingaccident.global.log.LogMethodInvocation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

@@ -1,4 +1,4 @@
-package com.suhkang.inquiryingaccident.util.exception;
+package com.suhkang.inquiryingaccident.global.exception;
 
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

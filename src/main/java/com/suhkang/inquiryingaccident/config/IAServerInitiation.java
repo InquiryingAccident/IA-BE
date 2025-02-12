@@ -1,6 +1,7 @@
 package com.suhkang.inquiryingaccident.config;
 
-import static com.suhkang.inquiryingaccident.util.log.LogUtils.lineLog;
+
+import static com.suhkang.inquiryingaccident.global.util.LogUtil.lineLog;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

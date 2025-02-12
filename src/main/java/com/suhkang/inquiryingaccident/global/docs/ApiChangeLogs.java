@@ -1,11 +1,13 @@
-package com.suhkang.inquiryingaccident.util.log;
+package com.suhkang.inquiryingaccident.global.docs;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
 
-@Retention(value = RetentionPolicy.RUNTIME)
+@Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface LogMethodInvocation {
+public @interface ApiChangeLogs {
+
+  ApiChangeLog[] value();
 }

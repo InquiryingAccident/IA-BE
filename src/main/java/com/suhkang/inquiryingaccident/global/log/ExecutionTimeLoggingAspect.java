@@ -1,4 +1,4 @@
-package com.suhkang.inquiryingaccident.util.log;
+package com.suhkang.inquiryingaccident.global.log;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

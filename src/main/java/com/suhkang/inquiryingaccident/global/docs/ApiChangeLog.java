@@ -1,4 +1,4 @@
-package com.suhkang.inquiryingaccident.util.log;
+package com.suhkang.inquiryingaccident.global.docs;
 
 import com.suhkang.inquiryingaccident.object.constants.Author;
 import java.lang.annotation.ElementType;

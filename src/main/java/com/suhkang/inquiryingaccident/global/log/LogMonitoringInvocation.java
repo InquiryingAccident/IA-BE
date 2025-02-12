@@ -1,4 +1,4 @@
-package com.suhkang.inquiryingaccident.util.log;
+package com.suhkang.inquiryingaccident.global.log;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
@@ -7,5 +7,5 @@ import java.lang.annotation.Target;
 
 @Retention(value = RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
-public @interface LogTimeInvocation {
+public @interface LogMonitoringInvocation {
 }

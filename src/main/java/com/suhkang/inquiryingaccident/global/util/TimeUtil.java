@@ -1,4 +1,4 @@
-package com.suhkang.inquiryingaccident.util;
+package com.suhkang.inquiryingaccident.global.util;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
