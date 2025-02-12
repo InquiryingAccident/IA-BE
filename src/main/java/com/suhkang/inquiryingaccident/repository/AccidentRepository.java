@@ -1,8 +1,10 @@
 package com.suhkang.inquiryingaccident.repository;
 
+import com.suhkang.inquiryingaccident.object.constants.CommonStatus;
 import com.suhkang.inquiryingaccident.object.dao.Accident;
 import com.suhkang.inquiryingaccident.object.constants.AircraftRegistrationCode;
 import java.time.LocalDate;
+import java.util.List;
 import java.util.UUID;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -37,4 +39,15 @@ public interface AccidentRepository extends JpaRepository<Accident, UUID> {
       @Param("damage") String damage,
       @Param("hasPreliminaryReport") Boolean hasPreliminaryReport,
       Pageable pageable);
+
+
+  @Query("SELECT count(a) FROM Accident a WHERE extract(year from a.accidentDate) = :year")
+  int countByAccidentYear(@Param("year") int year);
+
+  @Query("SELECT count(a) FROM Accident a WHERE extract(year from a.accidentDate) = :year AND a.commonStatus = :commonStatus")
+  int countByAccidentYearAndCommonStatus(@Param("year") int year,
+      @Param("commonStatus") CommonStatus commonStatus);
+
+  @Query("SELECT a FROM Accident a WHERE extract(year from a.accidentDate) = :year")
+  List<Accident> findByAccidentYear(@Param("year") int year);
 }
