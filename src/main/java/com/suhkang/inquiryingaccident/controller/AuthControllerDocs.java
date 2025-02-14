@@ -51,6 +51,12 @@ public interface AuthControllerDocs {
       @ApiChangeLog(
           date = "2025.02.09",
           author = Author.SUHSAECHAN,
+          issueNumber = 10,
+          description = "반환값 응답코드 201으로만 수정, 본문 삽입되는 Member 삭제"
+      ),
+      @ApiChangeLog(
+          date = "2025.02.09",
+          author = Author.SUHSAECHAN,
           issueNumber = 4,
           description = "회원가입 기능 구현"
       )
@@ -70,8 +76,8 @@ public interface AuthControllerDocs {
       - **`password`**: 비밀번호 (최소 8자리 이상)
       - **`nickname`**: 닉네임 (중복 불가)
 
-      ## 반환값 (SignUpResponse)
-      - **`member`**: 회원 정보 객체 (가입된 회원의 상세 정보 포함)
+      ## 반환값
+      - 회원가입 성공 시 HTTP 201 CREATED 상태 코드 반환 (응답 본문 없음)
 
       ## 에러코드
       - **`MEMBER_ALREADY_EXISTS`**: 이미 존재하는 회원입니다.
@@ -83,6 +89,12 @@ public interface AuthControllerDocs {
       @ApiChangeLog(
           date = "2025.02.09",
           author = Author.SUHSAECHAN,
+          issueNumber = 10,
+          description = "엑세스 토큰, 리프레시 갱신 기능으로 수정"
+      ),
+      @ApiChangeLog(
+          date = "2025.02.09",
+          author = Author.SUHSAECHAN,
           issueNumber = 4,
           description = "액세스 토큰 갱신 기능 구현"
       )
@@ -90,23 +102,24 @@ public interface AuthControllerDocs {
   @Operation(
       summary = "액세스 토큰 갱신",
       description = """
-      ## 인증(JWT): **불필요**
+    ## 인증(JWT): **불필요**
 
-      ## 참고사항
-      - **`refreshToken`**: 유효한 리프레시 토큰이 있어야 합니다.
-      - **`expiredRefreshToken`**: 만료된 리프레시 토큰은 사용할 수 없으며, 재로그인이 필요합니다.
+    ## 참고사항
+    - **`refreshToken`**: 유효한 리프레시 토큰이 있어야 합니다.
+    - **`expiredRefreshToken`**: 만료된 리프레시 토큰은 사용할 수 없으며, 재로그인이 필요합니다.
 
-      ## 요청 파라미터 (RefreshAccessTokenByRefreshTokenRequest)
-      - **`refreshToken`**: 기존 발급된 리프레시 토큰
+    ## 요청 파라미터 (RefreshAccessTokenByRefreshTokenRequest)
+    - **`refreshToken`**: 기존 발급된 리프레시 토큰
 
-      ## 반환값 (RefreshAccessTokenByRefreshTokenResponse)
-      - **`accessToken`**: 새로운 액세스 토큰 (로그인 유지용)
+    ## 반환값 (RefreshAccessTokenByRefreshTokenResponse)
+    - **`accessToken`**: 새로운 액세스 토큰 (로그인 유지용)
+    - **`refreshToken`**: 갱신된 리프레시 토큰
 
-      ## 에러코드
-      - **`INVALID_REFRESH_TOKEN`**: 유효하지 않은 Refresh Token 입니다.
-      - **`EXPIRED_REFRESH_TOKEN`**: 만료된 Refresh Token 입니다.
-      - **`MEMBER_NOT_FOUND`**: 회원을 찾을 수 없습니다.
-      """
+    ## 에러코드
+    - **`INVALID_REFRESH_TOKEN`**: 유효하지 않은 Refresh Token 입니다.
+    - **`EXPIRED_REFRESH_TOKEN`**: 만료된 Refresh Token 입니다.
+    - **`MEMBER_NOT_FOUND`**: 회원을 찾을 수 없습니다.
+    """
   )
   ResponseEntity<RefreshAccessTokenByRefreshTokenResponse> refreshAccessTokenByRefreshToken(@ModelAttribute RefreshAccessTokenByRefreshTokenRequest request);
 }
