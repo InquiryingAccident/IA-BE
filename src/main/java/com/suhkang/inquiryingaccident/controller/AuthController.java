@@ -1,5 +1,6 @@
 package com.suhkang.inquiryingaccident.controller;
 
+import com.suhkang.inquiryingaccident.global.log.LogMethodInvocation;
 import com.suhkang.inquiryingaccident.object.request.LoginRequest;
 import com.suhkang.inquiryingaccident.object.request.RefreshAccessTokenByRefreshTokenRequest;
 import com.suhkang.inquiryingaccident.object.request.SignupRequest;
@@ -8,9 +9,9 @@ import com.suhkang.inquiryingaccident.object.response.RefreshAccessTokenByRefres
 import com.suhkang.inquiryingaccident.object.response.SignUpResponse;
 import com.suhkang.inquiryingaccident.repository.MemberRepository;
 import com.suhkang.inquiryingaccident.service.AuthService;
-import com.suhkang.inquiryingaccident.global.log.LogMethodInvocation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -43,7 +44,8 @@ public class AuthController implements AuthControllerDocs{
   @LogMethodInvocation
   public ResponseEntity<SignUpResponse> signup(
       @ModelAttribute SignupRequest signupRequest) {
-    return ResponseEntity.ok(authService.signup(signupRequest));
+    authService.signup(signupRequest);
+    return ResponseEntity.status(HttpStatus.CREATED).build();
   }
 
   @Override

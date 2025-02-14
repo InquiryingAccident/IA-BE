@@ -21,6 +21,7 @@ public class PlaneAccidentFinderInitiation implements ApplicationRunner {
 	private final DatabaseInitializationService databaseInitializationService;
 
 	@Override
+	// 모든 Bean 등록 완료시 실행
 	public void run(ApplicationArguments args) throws Exception {
 		lineLog("SERVER START");
 		lineLog("데이터 초기화 시작");
