@@ -69,8 +69,7 @@ public class AuthService {
   }
 
   public LoginResponse login(LoginRequest request) {
-    // Authentication 객체 생성: 이메일/패시워드 -> principal/credentials
-    // -> DaoAuthenticationProviders -> UserDetailService.loadUserByUsername(principal) -> UserDetails 반환
+    // Authentication -> 인증 처리
     Authentication authentication = authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
     );
@@ -78,6 +77,19 @@ public class AuthService {
     SecurityContextHolder.getContext().setAuthentication(authentication);
     String accessToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.ACCESS);
     String refreshToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.REFRESH);
+
+    // 현재 인증된 회원 정보 가져오기
+    CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
+    Member member = userDetails.getMember();
+
+    // RefreshToken 엔티티 생성 및 저장
+    RefreshToken refreshTokenEntity = RefreshToken.builder()
+        .token(refreshToken)
+        .memberId(member.getMemberId())
+        .memberEmail(member.getEmail())
+        .expiryDate(Instant.now().plusMillis(JwtTokenType.REFRESH.getDurationMilliseconds()))
+        .build();
+    refreshTokenRepository.save(refreshTokenEntity);
 
     return LoginResponse.builder()
         .accessToken(accessToken)
