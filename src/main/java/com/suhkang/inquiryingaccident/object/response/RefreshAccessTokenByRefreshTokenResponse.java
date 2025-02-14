@@ -15,4 +15,5 @@ import lombok.ToString;
 @AllArgsConstructor
 public class RefreshAccessTokenByRefreshTokenResponse {
   private String accessToken;
+  private String refreshToken;
 }

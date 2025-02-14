@@ -89,25 +89,34 @@ public class AuthService {
       RefreshAccessTokenByRefreshTokenRequest request
   ) {
     // refreshToken 검증
-    RefreshToken refreshToken = refreshTokenRepository.findByToken(request.getRefreshToken())
+    RefreshToken refreshTokenEntity = refreshTokenRepository.findByToken(request.getRefreshToken())
         .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
 
-    // refreshToken 만료시 삭제 -> 만료된 리프레시 에러
-    if (refreshToken.getExpiryDate().compareTo(Instant.now()) < 0) {
-      refreshTokenRepository.delete(refreshToken);
+    // 만료된 refreshToken이면 삭제 후 예외 발생
+    if (refreshTokenEntity.getExpiryDate().compareTo(Instant.now()) < 0) {
+      refreshTokenRepository.delete(refreshTokenEntity);
       throw new CustomException(ErrorCode.EXPIRED_REFRESH_TOKEN);
     }
 
-    // refreshToken -> memberID 추출 -> 새로운 accessToken 생성
+    // 토큰에 포함된 memberId로 회원 조회
     Member member = memberRepository.findById(jwtTokenProvider.getMemberIdFromToken(request.getRefreshToken()))
         .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     CustomUserDetails userDetails = new CustomUserDetails(member);
-    Authentication authentication
-        = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+
+    // 새로운 accessToken, refreshToken 생성
     String newAccessToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.ACCESS);
+    String newRefreshToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.REFRESH);
+
+    refreshTokenEntity.setToken(newRefreshToken);
+    // 새로운 만료시간 계산 (현재 시간 + REFRESH 토큰 유효기간)
+    refreshTokenEntity.setExpiryDate(Instant.now().plusMillis(JwtTokenType.REFRESH.getDurationMilliseconds()));
+    refreshTokenRepository.save(refreshTokenEntity);
 
     return RefreshAccessTokenByRefreshTokenResponse.builder()
         .accessToken(newAccessToken)
+        .refreshToken(newRefreshToken)
         .build();
   }
 
