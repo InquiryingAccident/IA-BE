@@ -49,7 +49,7 @@ public interface AuthControllerDocs {
 
   @ApiChangeLogs({
       @ApiChangeLog(
-          date = "2025.02.09",
+          date = "2025.02.15",
           author = Author.SUHSAECHAN,
           issueNumber = 10,
           description = "반환값 응답코드 201으로만 수정, 본문 삽입되는 Member 삭제"
@@ -87,7 +87,7 @@ public interface AuthControllerDocs {
 
   @ApiChangeLogs({
       @ApiChangeLog(
-          date = "2025.02.09",
+          date = "2025.02.15",
           author = Author.SUHSAECHAN,
           issueNumber = 10,
           description = "엑세스 토큰, 리프레시 갱신 기능으로 수정"

@@ -11,7 +11,11 @@ public class MemberService {
 
   public MyInfoResponse myInfo(Member member) {
     return MyInfoResponse.builder()
-        .member(member)
+        .email(member.getEmail())
+        .nickname(member.getNickname())
+        .accountStatus(member.getAccountStatus())
+        .createDate(member.getCreatedDate())
+        .lastLoginTime(member.getLastLoginTime())
         .build();
   }
 }
