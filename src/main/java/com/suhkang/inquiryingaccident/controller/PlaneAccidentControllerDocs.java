@@ -5,7 +5,9 @@ import com.suhkang.inquiryingaccident.global.docs.ApiChangeLogs;
 import com.suhkang.inquiryingaccident.object.constants.Author;
 import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
 import com.suhkang.inquiryingaccident.object.request.SearchAccidentInfoRequest;
+import com.suhkang.inquiryingaccident.object.request.searchAccidentInfoByRegistrationRequest;
 import com.suhkang.inquiryingaccident.object.response.SearchAccidentInfoResponse;
+import com.suhkang.inquiryingaccident.object.response.searchAccidentInfoByRegistrationResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -64,8 +66,39 @@ public interface PlaneAccidentControllerDocs {
       - **`ACCIDENT_NOT_FOUND`**: 조회된 사고 정보가 없습니다.
       """
   )
-
   public ResponseEntity<SearchAccidentInfoResponse> searchAccidentInfo(
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
       @ModelAttribute SearchAccidentInfoRequest request);
+
+  @ApiChangeLogs({
+      @ApiChangeLog(
+          date = "2025.02.13",
+          author = Author.SUHSAECHAN,
+          issueNumber = 9,
+          description = "항공기 등록 번호로 사고 정보 조회 기능 구현"
+      )
+  })
+  @Operation(
+      summary = "항공기 등록 번호로 사고 정보 조회",
+      description = """
+    ## 인증(JWT): **필요**
+    
+    ## 참고사항
+    - **`registration`**: 항공기 등록 번호 (부분 검색 가능)
+    - **`page`**: 페이지 번호 (0부터 시작, 기본값: 0)
+    - **`size`**: 한 페이지 당 데이터 개수 (기본값: 10)
+    - **`sortField`**: 정렬 기준 필드 (지원 필드: `accidentDate` 등, 기본값: `accidentDate`)
+    - **`sortDirection`**: 정렬 방향 (`ASC` 또는 `DESC`, 기본값: `DESC`)
+    
+    ## 반환값
+    - **`accidentPage`**: 조회된 사고 목록 (페이지네이션 적용)
+    
+    ## 에러코드
+    - **`ACCIDENT_NOT_FOUND`**: 조회된 사고 정보가 없습니다.
+    """
+  )
+  public ResponseEntity<searchAccidentInfoByRegistrationResponse> searchAccidentInfoByRegistration(
+      @AuthenticationPrincipal CustomUserDetails customUserDetails,
+      @ModelAttribute searchAccidentInfoByRegistrationRequest request);
+
 }

@@ -1,6 +1,6 @@
 package com.suhkang.inquiryingaccident.object.request;
 
-import com.suhkang.inquiryingaccident.object.dao.Member;
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -15,6 +15,6 @@ import lombok.ToString;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RefreshAccessTokenByRefreshTokenRequest {
+  @Schema(defaultValue = "exampleRefreshToken")
   private String refreshToken;
-  private Member member;
 }

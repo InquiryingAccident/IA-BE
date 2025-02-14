@@ -3,7 +3,9 @@ package com.suhkang.inquiryingaccident.controller;
 import com.suhkang.inquiryingaccident.global.log.LogMethodInvocation;
 import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
 import com.suhkang.inquiryingaccident.object.request.SearchAccidentInfoRequest;
+import com.suhkang.inquiryingaccident.object.request.searchAccidentInfoByRegistrationRequest;
 import com.suhkang.inquiryingaccident.object.response.SearchAccidentInfoResponse;
+import com.suhkang.inquiryingaccident.object.response.searchAccidentInfoByRegistrationResponse;
 import com.suhkang.inquiryingaccident.service.PlaneAccidentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
@@ -26,13 +28,22 @@ public class PlaneAccidentController implements PlaneAccidentControllerDocs{
 
   private final PlaneAccidentService planeAccidentService;
 
-  @PostMapping(value = "/search", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @PostMapping(value = "/filter/search", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @LogMethodInvocation
   public ResponseEntity<SearchAccidentInfoResponse> searchAccidentInfo(
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
       @ModelAttribute SearchAccidentInfoRequest request
   ){
     return ResponseEntity.ok(planeAccidentService.searchAccidentInfo(request));
+  }
+
+  @PostMapping(value = "/registration/search", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @LogMethodInvocation
+  public ResponseEntity<searchAccidentInfoByRegistrationResponse> searchAccidentInfoByRegistration(
+      @AuthenticationPrincipal CustomUserDetails customUserDetails,
+      @ModelAttribute searchAccidentInfoByRegistrationRequest request
+  ){
+    return ResponseEntity.ok(planeAccidentService.searchAccidentInfoByRegistration(request));
   }
 
 }

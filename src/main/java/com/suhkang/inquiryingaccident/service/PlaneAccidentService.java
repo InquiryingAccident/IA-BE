@@ -3,7 +3,9 @@ package com.suhkang.inquiryingaccident.service;
 import com.suhkang.inquiryingaccident.global.util.CommonUtil;
 import com.suhkang.inquiryingaccident.object.dao.Accident;
 import com.suhkang.inquiryingaccident.object.request.SearchAccidentInfoRequest;
+import com.suhkang.inquiryingaccident.object.request.searchAccidentInfoByRegistrationRequest;
 import com.suhkang.inquiryingaccident.object.response.SearchAccidentInfoResponse;
+import com.suhkang.inquiryingaccident.object.response.searchAccidentInfoByRegistrationResponse;
 import com.suhkang.inquiryingaccident.repository.AccidentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -81,4 +83,45 @@ public class PlaneAccidentService {
             sortField.equals("hasPreliminaryReport")
     );
   }
+
+  public searchAccidentInfoByRegistrationResponse searchAccidentInfoByRegistration(
+      searchAccidentInfoByRegistrationRequest request) {
+
+    // registration 필드에 대한 기본값 설정
+    String registration = CommonUtil.nvl(request.getRegistration());
+
+    // 정렬 필드 검증 및 생성 (지원하지 않는 필드는 기본 accidentDate로 처리)
+    String sortField = request.getSortField();
+    if (!isSupportedSortField(sortField)) {
+      sortField = "accidentDate";
+    }
+
+    // 정렬 방향: 기본 DESC (최신순)
+    String sortDirection = request.getSortDirection();
+    Sort sort = "ASC".equalsIgnoreCase(sortDirection)
+        ? Sort.by(sortField).ascending()
+        : Sort.by(sortField).descending();
+
+    Pageable pageable = PageRequest.of(request.getPage(), request.getSize(), sort);
+
+    // registration만 필터링
+    Page<Accident> accidentPage = accidentRepository.findByDynamicQuery(
+        "",                   // wikibaseId
+        null,                 // accidentDate
+        "",                   // aircraftType
+        registration,         // registration
+        "",                   // operator
+        null,                 // fatalities
+        "",                   // location
+        null,                 // aircraftRegistrationCode
+        "",                   // damage
+        null,                 // hasPreliminaryReport
+        pageable
+    );
+
+    return searchAccidentInfoByRegistrationResponse.builder()
+        .accidentPage(accidentPage)
+        .build();
+  }
+
 }
