@@ -88,28 +88,29 @@ public class AuthService {
   public RefreshAccessTokenByRefreshTokenResponse refreshAccessTokenByRefreshToken(
       RefreshAccessTokenByRefreshTokenRequest request
   ) {
-    // refreshToken 검증: 저장소에서 refreshToken 엔티티 조회
+    // 저장소에서 refreshToken 엔티티 조회
     RefreshToken refreshTokenEntity = refreshTokenRepository.findByToken(request.getRefreshToken())
         .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
 
-    // 만료되지 않은 refreshToken이 들어오면 예외 처리
-    if (!RefreshToken.isExpired(refreshTokenEntity)) {
-      log.error("만료되지 않은 토큰이 전달되었습니다. 재발급 요청은 만료된 토큰만 허용됩니다. memberEmail: {}", refreshTokenEntity.getMemberEmail());
-      throw new CustomException(ErrorCode.NOT_EXPIRED_REFRESH_TOKEN);
+    // refreshToken 회전 방식: 유효 여부와 상관없이 항상 새로운 토큰 발급
+    if (RefreshToken.isExpired(refreshTokenEntity)) {
+      log.info("만료된 토큰이 전달되었습니다. 자동 로그인을 위해 토큰을 갱신합니다. memberEmail: {}", refreshTokenEntity.getMemberEmail());
+    } else {
+      log.info("유효한 토큰이 전달되었습니다. 자동 로그인을 위해 토큰을 갱신합니다. memberEmail: {}", refreshTokenEntity.getMemberEmail());
     }
 
-    // refreshToken 엔티티에 저장된 memberId를 사용하여 회원 조회
+    // 저장된 memberId를 사용하여 회원 조회
     Member member = memberRepository.findById(refreshTokenEntity.getMemberId())
         .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     CustomUserDetails userDetails = new CustomUserDetails(member);
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-    // 새로운 accessToken, refreshToken 생성
+    // 새로운 accessToken과 refreshToken 생성
     String newAccessToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.ACCESS);
     String newRefreshToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.REFRESH);
 
-    // refreshToken Entity 업데이트 (새로운 토큰 값과 만료시간)
+    // refreshToken 엔티티 업데이트: 새로운 토큰 값과 만료시간 적용
     refreshTokenEntity.setToken(newRefreshToken);
     refreshTokenEntity.setExpiryDate(Instant.now().plusMillis(JwtTokenType.REFRESH.getDurationMilliseconds()));
     refreshTokenRepository.save(refreshTokenEntity);
@@ -121,5 +122,6 @@ public class AuthService {
         .refreshToken(newRefreshToken)
         .build();
   }
+
 
 }

@@ -90,7 +90,7 @@ public interface AuthControllerDocs {
           date = "2025.02.15",
           author = Author.SUHSAECHAN,
           issueNumber = 10,
-          description = "엑세스 토큰, 리프레시 갱신 기능으로 수정"
+          description = "엑세스 토큰, 리프레시 토큰 갱신 (refresh token rotation) 방식으로 수정"
       ),
       @ApiChangeLog(
           date = "2025.02.09",
@@ -100,26 +100,24 @@ public interface AuthControllerDocs {
       )
   })
   @Operation(
-      summary = "액세스 토큰 갱신",
+      summary = "액세스 토큰 갱신 (토큰 회전 방식)",
       description = """
-    ## 인증(JWT): **불필요**
+      ## 인증(JWT): **불필요**
 
-    ## 참고사항
-    - **`refreshToken`**: 유효한 리프레시 토큰이 있어야 합니다.
-    - ** 만료된 토큰일 경우에만 새로운 토큰을 발급합니다.
+      ## 참고사항
+      - **`refreshToken`**: 기존 발급된 리프레시 토큰을 사용하여, 만료 여부와 상관없이 항상 새로운 액세스 토큰과 리프레시 토큰을 발급합니다.
+      
+      ## 요청 파라미터 (RefreshAccessTokenByRefreshTokenRequest)
+      - **`refreshToken`**: 기존 발급된 리프레시 토큰
 
-    ## 요청 파라미터 (RefreshAccessTokenByRefreshTokenRequest)
-    - **`refreshToken`**: 기존 발급된 리프레시 토큰
+      ## 반환값 (RefreshAccessTokenByRefreshTokenResponse)
+      - **`accessToken`**: 새로운 액세스 토큰 
+      - **`refreshToken`**: 갱신된 리프레시 토큰
 
-    ## 반환값 (RefreshAccessTokenByRefreshTokenResponse)
-    - **`accessToken`**: 새로운 액세스 토큰 
-    - **`refreshToken`**: 갱신된 리프레시 토큰
-
-    ## 에러코드
-    - **`INVALID_REFRESH_TOKEN`**: 유효하지 않은 Refresh Token 입니다.
-    - **`NOT_EXPIRED_REFRESH_TOKEN`**: 만료되지 않은 토큰이 전달되었습니다. 재발급 요청은 만료된 토큰만 허용됩니다.
-    - **`MEMBER_NOT_FOUND`**: 회원을 찾을 수 없습니다.
-    """
+      ## 에러코드
+      - **`INVALID_REFRESH_TOKEN`**: 유효하지 않은 Refresh Token 입니다.
+      - **`MEMBER_NOT_FOUND`**: 회원을 찾을 수 없습니다.
+      """
   )
   ResponseEntity<RefreshAccessTokenByRefreshTokenResponse> refreshAccessTokenByRefreshToken(@ModelAttribute RefreshAccessTokenByRefreshTokenRequest request);
 }
