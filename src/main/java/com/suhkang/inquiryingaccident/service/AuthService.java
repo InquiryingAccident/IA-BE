@@ -1,5 +1,8 @@
 package com.suhkang.inquiryingaccident.service;
 
+import com.suhkang.inquiryingaccident.global.exception.CustomException;
+import com.suhkang.inquiryingaccident.global.exception.ErrorCode;
+import com.suhkang.inquiryingaccident.global.util.JwtTokenProvider;
 import com.suhkang.inquiryingaccident.object.constants.AccountStatus;
 import com.suhkang.inquiryingaccident.object.constants.JwtTokenType;
 import com.suhkang.inquiryingaccident.object.constants.Role;
@@ -14,10 +17,8 @@ import com.suhkang.inquiryingaccident.object.response.RefreshAccessTokenByRefres
 import com.suhkang.inquiryingaccident.object.response.SignUpResponse;
 import com.suhkang.inquiryingaccident.repository.MemberRepository;
 import com.suhkang.inquiryingaccident.repository.RefreshTokenRepository;
-import com.suhkang.inquiryingaccident.global.util.JwtTokenProvider;
-import com.suhkang.inquiryingaccident.global.exception.CustomException;
-import com.suhkang.inquiryingaccident.global.exception.ErrorCode;
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -81,6 +82,10 @@ public class AuthService {
     // 현재 인증된 회원 정보 가져오기
     CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
     Member member = userDetails.getMember();
+
+    // 마지막 로그인 시간 업데이트
+    member.setLastLoginTime(LocalDateTime.now());
+    memberRepository.save(member);
 
     // RefreshToken 엔티티 생성 및 저장
     RefreshToken refreshTokenEntity = RefreshToken.builder()
