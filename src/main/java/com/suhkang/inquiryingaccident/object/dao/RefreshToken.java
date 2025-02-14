@@ -43,4 +43,8 @@ public class RefreshToken {
   // 리프레시 토큰 만료 시간
   @Column(name = "expiry_date", nullable = false)
   private Instant expiryDate;
+
+  public static boolean isExpired(RefreshToken refreshToken) {
+    return refreshToken.getExpiryDate().isBefore(Instant.now());
+  }
 }

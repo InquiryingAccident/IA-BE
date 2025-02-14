@@ -88,18 +88,18 @@ public class AuthService {
   public RefreshAccessTokenByRefreshTokenResponse refreshAccessTokenByRefreshToken(
       RefreshAccessTokenByRefreshTokenRequest request
   ) {
-    // refreshToken 검증
+    // refreshToken 검증: 저장소에서 refreshToken 엔티티 조회
     RefreshToken refreshTokenEntity = refreshTokenRepository.findByToken(request.getRefreshToken())
         .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
 
-    // 만료된 refreshToken이면 삭제 후 예외 발생
-    if (refreshTokenEntity.getExpiryDate().compareTo(Instant.now()) < 0) {
-      refreshTokenRepository.delete(refreshTokenEntity);
-      throw new CustomException(ErrorCode.EXPIRED_REFRESH_TOKEN);
+    // 만료되지 않은 refreshToken이 들어오면 예외 처리
+    if (!RefreshToken.isExpired(refreshTokenEntity)) {
+      log.error("만료되지 않은 토큰이 전달되었습니다. 재발급 요청은 만료된 토큰만 허용됩니다. memberEmail: {}", refreshTokenEntity.getMemberEmail());
+      throw new CustomException(ErrorCode.NOT_EXPIRED_REFRESH_TOKEN);
     }
 
-    // 토큰에 포함된 memberId로 회원 조회
-    Member member = memberRepository.findById(jwtTokenProvider.getMemberIdFromToken(request.getRefreshToken()))
+    // refreshToken 엔티티에 저장된 memberId를 사용하여 회원 조회
+    Member member = memberRepository.findById(refreshTokenEntity.getMemberId())
         .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     CustomUserDetails userDetails = new CustomUserDetails(member);
     Authentication authentication =
@@ -109,10 +109,12 @@ public class AuthService {
     String newAccessToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.ACCESS);
     String newRefreshToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.REFRESH);
 
+    // refreshToken Entity 업데이트 (새로운 토큰 값과 만료시간)
     refreshTokenEntity.setToken(newRefreshToken);
-    // 새로운 만료시간 계산 (현재 시간 + REFRESH 토큰 유효기간)
     refreshTokenEntity.setExpiryDate(Instant.now().plusMillis(JwtTokenType.REFRESH.getDurationMilliseconds()));
     refreshTokenRepository.save(refreshTokenEntity);
+
+    log.info("새로운 액세스 토큰, 리프레시 토큰이 발급되었습니다. memberEmail: {}", member.getEmail());
 
     return RefreshAccessTokenByRefreshTokenResponse.builder()
         .accessToken(newAccessToken)

@@ -26,7 +26,7 @@ public enum ErrorCode {
 
   INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지않은 Refresh Token 입니다"),
 
-  EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "만료된 Refresh Token 입니다"),
+  NOT_EXPIRED_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "만료되지 않은 토큰이 전달되었습니다. 재발급 요청은 만료된 토큰만 허용됩니다."),
 
   INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "ID와 비밀번호를 정확히 입력해 주십시오.");
 
