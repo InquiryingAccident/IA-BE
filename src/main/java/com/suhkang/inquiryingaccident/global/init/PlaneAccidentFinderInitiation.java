@@ -2,7 +2,9 @@ package com.suhkang.inquiryingaccident.global.init;
 
 import static com.suhkang.inquiryingaccident.global.util.LogUtil.lineLog;
 import static com.suhkang.inquiryingaccident.global.util.LogUtil.logServerInitDuration;
+
 import com.suhkang.inquiryingaccident.global.docs.GithubIssueService;
+import com.suhkang.inquiryingaccident.service.AircraftTypeInitializationService;
 import com.suhkang.inquiryingaccident.service.PlaneAccidentService;
 import java.time.LocalDateTime;
 import lombok.RequiredArgsConstructor;
@@ -18,7 +20,8 @@ public class PlaneAccidentFinderInitiation implements ApplicationRunner {
 
 	private final GithubIssueService githubIssueService;
 	private final PlaneAccidentService planeAccidentService;
-	private final DatabaseInitializationService databaseInitializationService;
+	private final DatabaseInitializationService PlanAccidentInitializationService;
+	private final AircraftTypeInitializationService aircraftTypeInitializationService;
 
 	@Override
 	// 모든 Bean 등록 완료시 실행
@@ -30,8 +33,11 @@ public class PlaneAccidentFinderInitiation implements ApplicationRunner {
 		// Github 이슈 업데이트
 		githubIssueService.syncGithubIssues();
 
-		// Plane Accident DB 업데이트 (한번만 수행)
-		databaseInitializationService.initializeOrUpdateDatabase();
+		// Plane Accident DB 업데이트
+		PlanAccidentInitializationService.initDatabase();
+
+		// AircraftType 업데이트
+		aircraftTypeInitializationService.initDatabase();
 
 		logServerInitDuration(startTime);
 		log.info("서버 데이터 초기화 및 업데이트 완료");

@@ -40,7 +40,7 @@ public class DatabaseInitializationService {
    * DB 초기화 및 연도별 파싱 상태를 병렬로 확인 및 업데이트합니다.
    * 각 연도별 작업은 별도의 트랜잭션으로 처리됩니다.
    */
-  public void initializeOrUpdateDatabase() {
+  public void initDatabase() {
     List<Callable<Void>> tasks = IntStream.rangeClosed(MIN_YEAR, CURRENT_YEAR)
         .mapToObj(year -> (Callable<Void>) () -> {
           processYear(year);

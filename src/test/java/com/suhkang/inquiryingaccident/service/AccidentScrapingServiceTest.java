@@ -1,8 +1,8 @@
 package com.suhkang.inquiryingaccident.service;
 
 import static com.suhkang.inquiryingaccident.global.util.LogUtil.lineLog;
-import static com.suhkang.inquiryingaccident.global.util.LogUtil.timeLog;
 
+import com.suhkang.inquiryingaccident.global.util.LogUtil;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,7 @@ class AccidentScrapingServiceTest {
     lineLog("테스트 시작");
 
 //    LogUtil.timeLog(this::테스트_스크래핑);
-    timeLog(this::테스트_1971_2년_스크래핑);
+    LogUtil.timeLog(this::테스트_1971_2년_스크래핑);
 
     lineLog("테스트 종료");
   }
