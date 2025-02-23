@@ -58,6 +58,9 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-20.04
+    # GitHub Actions의 GITHUB_REF 값을 환경 변수로 전달
+    env:
+      GITHUB_REF: ${{ github.ref }}
     steps:
       - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
@@ -73,7 +76,7 @@ jobs:
             export PATH=$PATH:/usr/local/bin
             export PW=${{ secrets.SERVER_PASSWORD }}
 
-            # 현재 브랜치에 따라 분기
+            # GITHUB_REF 환경 변수에서 브랜치명 추출
             BRANCH="${GITHUB_REF##*/}"
             if [ "$BRANCH" == "main" ]; then
               CONTAINER_NAME="plane-accident-finder-back"
