@@ -50,9 +50,7 @@ jobs:
           context: .
           file: ./Dockerfile
           push: true
-          tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:main
-            ${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:test
+          tags: ${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:${{ github.ref_name }}
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:cache
           cache-to: type=inline
 
