@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - test
   workflow_dispatch:
 
 jobs:
@@ -24,12 +25,12 @@ jobs:
 
       - name: Create application.yml from secret
         run: |
-          mkdir -p src/main/resources  # 디렉토리 없으면 생성
+          mkdir -p src/main/resources
           echo "${{ secrets.APPLICATION_YML }}" > src/main/resources/application.yml
 
       - name: Create application-prod.yml from secret
         run: |
-          mkdir -p src/main/resources  # 디렉토리 없으면 생성
+          mkdir -p src/main/resources
           echo "${{ secrets.APPLICATION_PROD_YML }}" > src/main/resources/application-prod.yml
 
       - name: Build with Gradle
@@ -57,8 +58,11 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-20.04
+    env:
+      # github.ref 값: refs/heads/main , refs/heads/test
+      GITHUB_REF: ${{ github.ref }}
     steps:
-      - name: Deploy
+      - name: Deploy via SSH
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -71,30 +75,47 @@ jobs:
             echo "환경 변수 설정 중..."
             export PATH=$PATH:/usr/local/bin
             export PW=${{ secrets.SERVER_PASSWORD }}
-            CONTAINER_NAME="plane-accident-finder-back"
-            PORT=8082
+
+            # GITHUB_REF에서 브랜치명 추출(refs/heads/main, refs/heads/test)
+            BRANCH="${GITHUB_REF##*/}"
+            echo "브랜치: $BRANCH"
+
+            if [ "$BRANCH" == "main" ]; then
+              CONTAINER_NAME="plane-accident-finder-back"
+              PORT=8085
+              IMAGE_TAG="main"
+            elif [ "$BRANCH" == "test" ]; then
+              CONTAINER_NAME="romrom-back-test"
+              PORT=8086
+              IMAGE_TAG="test"
+            else
+              echo "알 수 없는 브랜치: $BRANCH"
+              exit 1
+            fi
 
             echo "컨테이너 이름: $CONTAINER_NAME"
             echo "포트: $PORT"
+            echo "이미지 태그: $IMAGE_TAG"
 
-            echo "도커 이미지 풀: ${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:main"
-            echo $PW | sudo -S docker pull ${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:main
+            IMAGE_FULL="${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:${IMAGE_TAG}"
+            echo "도커 이미지 풀: $IMAGE_FULL"
+            echo $PW | sudo -S docker pull $IMAGE_FULL
 
             echo "컨테이너 $CONTAINER_NAME 존재 여부 확인 중..."
             if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
-              echo "컨테이너 $CONTAINER_NAME 이(가) 존재합니다. 중지 및 삭제 중..."
+              echo "컨테이너 $CONTAINER_NAME 존재. 중지 및 삭제..."
               echo $PW | sudo -S docker rm -f $CONTAINER_NAME
-              echo "컨테이너 $CONTAINER_NAME 이(가) 삭제되었습니다."
+              echo "컨테이너 $CONTAINER_NAME 삭제됨."
             else
-              echo "존재하는 컨테이너 $CONTAINER_NAME 이(가) 없습니다."
+              echo "컨테이너 $CONTAINER_NAME 없음."
             fi
 
-            echo "새로운 컨테이너 $CONTAINER_NAME 실행 중..."
+            echo "새 컨테이너 $CONTAINER_NAME 실행 중..."
             echo $PW | sudo -S docker run -d -p ${PORT}:8080 --name $CONTAINER_NAME \
               -e TZ=Asia/Seoul \
               -e SPRING_PROFILES_ACTIVE=prod \
               -v /etc/localtime:/etc/localtime:ro \
               -v /volume1/projects/suh-project-utility:/mnt/suh-project-utility \
-              ${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:main
+              $IMAGE_FULL
 
-            echo "배포가 성공적으로 완료되었습니다."
+            echo "배포 완료."
