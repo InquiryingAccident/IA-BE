@@ -32,4 +32,17 @@ public class FlightInfoController {
     FlightInfoByFlightAwareApiResponse response = flightInfoService.getFlightInfoByFlightAwareApi(request);
     return ResponseEntity.ok(response);
   }
+//
+//  /**
+//   * 항공기종 코드 -> 항공기종의 사고이력 조회 (기본적으로 최근순, 나라별 필터링 기능)
+//   */
+//  @PostMapping(value = "/plane/accident/search", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+//  @LogMethodInvocation
+//  public ResponseEntity<FlightInfoByFlightAwareApiResponse> getFlightInfo(
+//      @ModelAttribute FlightInfoByFlightAwareApiRequest request) {
+//
+//    FlightInfoByFlightAwareApiResponse response = flightInfoService.getFlightInfoByFlightAwareApi(request);
+//    return ResponseEntity.ok(response);
+//  }
+
 }

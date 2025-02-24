@@ -5,7 +5,6 @@ on:
     branches:
       - main
       - test
-  workflow_dispatch:
 
 jobs:
   build:
@@ -55,12 +54,11 @@ jobs:
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:cache
           cache-to: type=inline
 
-  deploy-main:
+  deploy:
     needs: build
     runs-on: ubuntu-20.04
-    if: ${{ github.ref == 'refs/heads/main' }}
     steps:
-      - name: Deploy Main via SSH
+      - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -68,89 +66,44 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: 2022
           script: |
-            set -e  # 에러 발생 시 스크립트 중단
-
-            echo "배포: main 브랜치"
+            set -e
+            
+            echo "환경변수 설정.."
+            export PATH=$PATH:/usr/local/bin
             export PW=${{ secrets.SERVER_PASSWORD }}
-
-            # main 전용
+            BRANCH=${{ github.ref_name }}
+            PORT=8080
             CONTAINER_NAME="plane-accident-finder-back"
-            PORT=8085
-            IMAGE_TAG="main"
-
+            
+            if [ "$BRANCH" == "main" ]; then
+              PORT=8082
+            elif [ "$BRANCH" == "test" ]; then
+              CONTAINER_NAME="plane-accident-finder-back-test"
+              PORT=8083
+            fi
+            
+            echo "브랜치: $BRANCH"
             echo "컨테이너 이름: $CONTAINER_NAME"
             echo "포트: $PORT"
-            echo "이미지 태그: $IMAGE_TAG"
-
-            IMAGE_FULL="${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:${IMAGE_TAG}"
-            echo "도커 이미지 풀: $IMAGE_FULL"
-            echo $PW | sudo -S docker pull $IMAGE_FULL
-
+            
+            echo "도커 이미지 풀 : ${{ secrets.DOCKERHUB_USERNAME }}/romrom-back-container:${BRANCH}"
+            echo $PW | sudo -S docker pull ${{ secrets.DOCKERHUB_USERNAME }}/romrom-back-container:${BRANCH}
+            
             echo "컨테이너 $CONTAINER_NAME 존재 여부 확인 중..."
-            if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
-              echo "컨테이너 $CONTAINER_NAME 존재. 중지 및 삭제 중..."
+            if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}\$"; then
+              echo "컨테이너 $CONTAINER_NAME 이(가) 존재합니다. 중지 및 삭제 중..."
               echo $PW | sudo -S docker rm -f $CONTAINER_NAME
-              echo "컨테이너 $CONTAINER_NAME 삭제됨."
+              echo "컨테이너 $CONTAINER_NAME 이(가) 삭제되었습니다."
             else
-              echo "컨테이너 $CONTAINER_NAME 없음."
+              echo "존재하는 컨테이너 $CONTAINER_NAME 이(가) 없습니다."
             fi
 
             echo "새로운 컨테이너 $CONTAINER_NAME 실행 중..."
             echo $PW | sudo -S docker run -d -p ${PORT}:8080 --name $CONTAINER_NAME \
               -e TZ=Asia/Seoul \
-              -e SPRING_PROFILES_ACTIVE=prod \
+              -e "SPRING_PROFILES_ACTIVE=prod" \
               -v /etc/localtime:/etc/localtime:ro \
               -v /volume1/projects/plane-accident-finder:/mnt/plane-accident-finder \
-              $IMAGE_FULL
-
-            echo "main 브랜치 배포 완료."
-
-  deploy-test:
-    needs: build
-    runs-on: ubuntu-20.04
-    if: ${{ github.ref == 'refs/heads/test' }}
-    steps:
-      - name: Deploy Test via SSH
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          username: ${{ secrets.SERVER_USER }}
-          password: ${{ secrets.SERVER_PASSWORD }}
-          port: 2022
-          script: |
-            set -e  # 에러 발생 시 스크립트 중단
-
-            echo "배포: test 브랜치"
-            export PW=${{ secrets.SERVER_PASSWORD }}
-
-            # test 전용
-            CONTAINER_NAME="plane-accident-finder-back-test"
-            PORT=8086
-            IMAGE_TAG="test"
-
-            echo "컨테이너 이름: $CONTAINER_NAME"
-            echo "포트: $PORT"
-            echo "이미지 태그: $IMAGE_TAG"
-
-            IMAGE_FULL="${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:${IMAGE_TAG}"
-            echo "도커 이미지 풀: $IMAGE_FULL"
-            echo $PW | sudo -S docker pull $IMAGE_FULL
-
-            echo "컨테이너 $CONTAINER_NAME 존재 여부 확인 중..."
-            if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}$"; then
-              echo "컨테이너 $CONTAINER_NAME 존재. 중지 및 삭제 중..."
-              echo $PW | sudo -S docker rm -f $CONTAINER_NAME
-              echo "컨테이너 $CONTAINER_NAME 삭제됨."
-            else
-              echo "컨테이너 $CONTAINER_NAME 없음."
-            fi
-
-            echo "새로운 컨테이너 $CONTAINER_NAME 실행 중..."
-            echo $PW | sudo -S docker run -d -p ${PORT}:8080 --name $CONTAINER_NAME \
-              -e TZ=Asia/Seoul \
-              -e SPRING_PROFILES_ACTIVE=prod \
-              -v /etc/localtime:/etc/localtime:ro \
-              -v /volume1/projects/plane-accident-finder:/mnt/plane-accident-finder \
-              $IMAGE_FULL
-
-            echo "test 브랜치 배포 완료."
+              ${{ secrets.DOCKERHUB_USERNAME }}/romrom-back-container:${BRANCH}
+            
+            echo "배포가 성공적으로 완료되었습니다."
