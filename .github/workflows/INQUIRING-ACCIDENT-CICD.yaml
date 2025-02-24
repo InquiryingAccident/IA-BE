@@ -86,8 +86,8 @@ jobs:
             echo "컨테이너 이름: $CONTAINER_NAME"
             echo "포트: $PORT"
             
-            echo "도커 이미지 풀 : ${{ secrets.DOCKERHUB_USERNAME }}/romrom-back-container:${BRANCH}"
-            echo $PW | sudo -S docker pull ${{ secrets.DOCKERHUB_USERNAME }}/romrom-back-container:${BRANCH}
+            echo "도커 이미지 풀 : ${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:${BRANCH}"
+            echo $PW | sudo -S docker pull ${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:${BRANCH}
             
             echo "컨테이너 $CONTAINER_NAME 존재 여부 확인 중..."
             if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}\$"; then
@@ -104,6 +104,6 @@ jobs:
               -e "SPRING_PROFILES_ACTIVE=prod" \
               -v /etc/localtime:/etc/localtime:ro \
               -v /volume1/projects/plane-accident-finder:/mnt/plane-accident-finder \
-              ${{ secrets.DOCKERHUB_USERNAME }}/romrom-back-container:${BRANCH}
+              ${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:${BRANCH}
             
             echo "배포가 성공적으로 완료되었습니다."
