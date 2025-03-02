@@ -9,6 +9,7 @@ import com.suhkang.inquiryingaccident.object.response.FlightInfoByFlightAwareApi
 import com.suhkang.inquiryingaccident.service.FlightInfoService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -47,5 +48,15 @@ public class FlightInfoController implements FlightInfoControllerDocs{
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
       @ModelAttribute @Valid AircraftInfoByModelCodeRequest request){
     return ResponseEntity.ok(flightInfoService.getAircraftTypeInfo(request));
+  }
+
+  /**
+   * 전체 항공기 코드 리스트 반환
+   */
+  @PostMapping(value = "/get/model-codes")
+  @LogMethodInvocation
+  public ResponseEntity<List<String>> getAllAircraftModelCodes(
+      @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+    return ResponseEntity.ok(flightInfoService.getAllAircraftModelCodes());
   }
 }

@@ -74,4 +74,12 @@ public class FlightInfoService {
       throw new CustomException(ErrorCode.AIRCRAFT_NOT_FOUND);
     }
   }
+
+  public List<String> getAllAircraftModelCodes() {
+    log.info("모든 항공기 모델 코드 조회 요청");
+    List<String> modelCodes = aircraftRepository.findDistinctModelCodes();
+    log.info("조회된 고유 모델 코드 수: {}", modelCodes.size());
+    return modelCodes;
+  }
+
 }
