@@ -51,9 +51,8 @@ public class CommonUtil {
 		}
 	}
 
-
 	/*
-	null 또는 "null"/빈 문자열을 빈 문자열("")로 치환
+	 * null 또는 "null"/빈 문자열을 빈 문자열("")로 치환
 	 */
 	public static String nvl(Object str) {
 		return nvl(String.valueOf(str), "");
@@ -70,11 +69,40 @@ public class CommonUtil {
 	public static String nvl(String str, String str1) {
 		if (null == str) {
 			return str1;
-		} else if ("null".equals(str) == true) {
+		} else if ("null".equals(str)) {
 			return str1;
-		} else if ("".equals(str) == true) {
+		} else if ("".equals(str)) {
 			return str1;
 		}
 		return str;
+	}
+
+	/**
+	 * 문자열을 정수로 변환합니다. 숫자가 아닌 문자는 제거 후 파싱.
+	 */
+	public static Integer parseInteger(String text) {
+		try {
+			return Integer.parseInt(text.replaceAll("[^0-9]", ""));
+		} catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
+	/**
+	 * 문자열을 실수로 변환합니다. 숫자와 소수점 외 문자는 제거 후 파싱.
+	 */
+	public static Double parseDouble(String text) {
+		try {
+			return Double.parseDouble(text.replaceAll("[^0-9\\.]", ""));
+		} catch (NumberFormatException e) {
+			return null;
+		}
+	}
+
+	/**
+	 * 문자열에서 숫자와 소수점을 제외한 모든 문자를 제거합니다.
+	 */
+	public static String removeUnit(String text) {
+		return text.replaceAll("[^0-9\\.]", "");
 	}
 }
