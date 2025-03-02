@@ -10,6 +10,7 @@ import com.suhkang.inquiryingaccident.object.request.FlightInfoByFlightAwareApiR
 import com.suhkang.inquiryingaccident.object.response.FlightInfoByFlightAwareApiResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import jakarta.validation.Valid;
+import java.util.List;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ModelAttribute;
@@ -145,4 +146,35 @@ public interface FlightInfoControllerDocs {
   public ResponseEntity<Aircraft> getAircraftTypeInfo(
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
       @ModelAttribute @Valid AircraftInfoByModelCodeRequest request);
+
+  @ApiChangeLogs({
+      @ApiChangeLog(
+          date = "2025.03.03",
+          author = Author.SUHSAECHAN,
+          issueNumber = 21,
+          description = "항공기 전체 모델 코드 목록 조회 API 추가"
+      )
+  })
+  @Operation(
+      summary = "모든 항공기 모델 코드 목록 조회",
+      description = """
+            ## 인증(JWT): **필요**
+            
+            ## 요청 파라미터
+            - 없음
+            
+            ## 문제점
+            - 항공기 정보를 DB에 가지고 있으나, 프론트가 필요로 하는 정보가 불확실함.
+            - 프론트엔드가 전체 항공기 리스트를 필요로 할 가능성 있음.
+            
+            ## 해결 방안 / 제안 기능
+            - DB에서 고유한 항공기 `modelCode` 목록을 반환하는 API 구현.
+            
+            ## 반환값
+            - **`aircraftModelCodes`**: 고유한 모델 코드 목록 (예: ["A319", "B737", "B763"])
+            
+            """
+  )
+  ResponseEntity<List<String>> getAllAircraftModelCodes(
+      @AuthenticationPrincipal CustomUserDetails customUserDetails);
 }
