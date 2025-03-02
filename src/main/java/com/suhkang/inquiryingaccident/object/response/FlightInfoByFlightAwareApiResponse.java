@@ -1,10 +1,11 @@
 package com.suhkang.inquiryingaccident.object.response;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.fasterxml.jackson.annotation.JsonProperty;
+
+import java.util.List;
 
 @Data
 @NoArgsConstructor

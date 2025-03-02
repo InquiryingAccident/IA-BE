@@ -7,7 +7,8 @@ import lombok.Getter;
 @Getter
 public enum HashType {
   GITHUB_ISSUES("관리되는 Gihub Issue 에 대한 전체 해시값"),
-  SERVER_ERROR_CODES("스프링 서버 에러코드 해시값");
+  AIRCRAFT_TYPE("항공기 모델에 대한 전체 해시값"),
+  AIRCRAFT("항공기 정보에 대한 전체 해시값");
 
   private final String description;
 }
