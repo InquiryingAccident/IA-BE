@@ -15,7 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/flight-info")
+@RequestMapping("/api/plane")
 @Tag(name = "항공편 정보 API", description = "FlightAware API 연동을 통해 항공편 정보를 제공")
 public class FlightInfoController {
 
@@ -27,6 +27,18 @@ public class FlightInfoController {
   @PostMapping(value = "/registration/search", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
   @LogMethodInvocation
   public ResponseEntity<FlightInfoByFlightAwareApiResponse> getFlightInfo(
+      @ModelAttribute FlightInfoByFlightAwareApiRequest request) {
+
+    FlightInfoByFlightAwareApiResponse response = flightInfoService.getFlightInfoByFlightAwareApi(request);
+    return ResponseEntity.ok(response);
+  }
+
+  /**
+   * 항공기 코드 -> 항공기 정보 제공
+   */
+  @PostMapping(value = "/code/info", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @LogMethodInvocation
+  public ResponseEntity<FlightInfoByFlightAwareApiResponse> getPlaneInfo(
       @ModelAttribute FlightInfoByFlightAwareApiRequest request) {
 
     FlightInfoByFlightAwareApiResponse response = flightInfoService.getFlightInfoByFlightAwareApi(request);
@@ -44,5 +56,6 @@ public class FlightInfoController {
 //    FlightInfoByFlightAwareApiResponse response = flightInfoService.getFlightInfoByFlightAwareApi(request);
 //    return ResponseEntity.ok(response);
 //  }
+
 
 }
