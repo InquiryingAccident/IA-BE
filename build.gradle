@@ -97,6 +97,10 @@ dependencies {
 
     // Reflection
     implementation("org.reflections:reflections:0.10.2")
+
+    // Map Struct
+    implementation 'org.mapstruct:mapstruct:1.5.5.Final'
+    annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 }
 
 tasks.named('test') {

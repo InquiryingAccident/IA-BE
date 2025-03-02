@@ -33,7 +33,7 @@ public class Aircraft{
   private UUID aircraftId;
 
   // 기본 항공기 정보
-  @Column(length = 10)
+  @Column(length = 10, unique = true, nullable = false)
   private String modelCode;           // 예: "A318"
   private String manufacturer;        // 예: "AIRBUS"
   private String modelName;           // 예: "A318"

@@ -30,7 +30,7 @@ public class AircraftType{
   private UUID aircraftTypeId;
 
   // 항공기 모델 코드 (예: "B737")
-  @Column(length = 10)
+  @Column(length = 10, unique = true, nullable = false)
   private String modelCode;
 
   // 제조사 (예: "Boeing")

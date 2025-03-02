@@ -30,6 +30,10 @@ public enum ErrorCode {
 
   INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "ID와 비밀번호를 정확히 입력해 주십시오."),
 
+  // AIRCRAFT
+
+  AIRCRAFT_NOT_FOUND(HttpStatus.NOT_FOUND, "항공기 정보를 찾을 수 없습니다"),
+
   // AIRCRAFT TYPE
 
   AIRCRAFT_TYPE_NOT_FOUND(HttpStatus.NOT_FOUND, "항공기 기종을 찾을 수 없습니다");
