@@ -26,6 +26,7 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 import lombok.ToString;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.SoftDelete;
 
 @Entity
 @Getter
@@ -34,6 +35,7 @@ import lombok.experimental.SuperBuilder;
 @AllArgsConstructor
 @NoArgsConstructor
 @ToString(callSuper = true)
+@SoftDelete(columnName = "is_deleted")
 @JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class Member extends BaseEntity {
 
@@ -42,7 +44,7 @@ public class Member extends BaseEntity {
   @Column(updatable = false, nullable = false)
   private UUID memberId;
 
-  @Column(unique = true)
+  @Column(nullable = false)
   private String email;
 
   private String password;
