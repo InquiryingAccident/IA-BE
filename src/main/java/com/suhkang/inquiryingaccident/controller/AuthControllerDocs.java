@@ -80,7 +80,8 @@ public interface AuthControllerDocs {
       - 회원가입 성공 시 HTTP 201 CREATED 상태 코드 반환 (응답 본문 없음)
 
       ## 에러코드
-      - **`MEMBER_ALREADY_EXISTS`**: 이미 존재하는 회원입니다.
+      - **`EMAIL_DUPLICATION`**: 중복된 이메일입니다.
+      - **`NICKNAME_DUPLICATION`**: 중복된 닉네임입니다.
       """
   )
   ResponseEntity<SignUpResponse> signup(@ModelAttribute SignupRequest signupRequest);
