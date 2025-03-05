@@ -8,16 +8,17 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
+          cache: 'gradle'
 
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -44,19 +45,34 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      # Docker 빌드 캐시 설정 추가
+      - name: Cache Docker layers
+        uses: actions/cache@v4
+        with:
+          path: /tmp/.buildx-cache
+          key: ${{ runner.os }}-buildx-${{ hashFiles('Dockerfile') }}
+          restore-keys: |
+            ${{ runner.os }}-buildx-
+
       - name: Build and push Docker image
-        uses: docker/build-push-action@v3
+        uses: docker/build-push-action@v5
         with:
           context: .
           file: ./Dockerfile
           push: true
           tags: ${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:${{ github.ref_name }}
-          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:cache
-          cache-to: type=inline
+          cache-from: type=local,src=/tmp/.buildx-cache
+          cache-to: type=local,dest=/tmp/.buildx-cache-new,mode=max
+
+
+      - name: Move Docker cache
+        run: |
+          rm -rf /tmp/.buildx-cache
+          mv /tmp/.buildx-cache-new /tmp/.buildx-cache
 
   deploy:
     needs: build
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     steps:
       - name: Deploy
         uses: appleboy/ssh-action@v1.0.3
@@ -66,29 +82,27 @@ jobs:
           password: ${{ secrets.SERVER_PASSWORD }}
           port: 2022
           script: |
-            set -e
-            
-            echo "환경변수 설정.."
+            set -e  # 에러 발생 시 스크립트 중단
+
+            echo "환경변수 설정..."
             export PATH=$PATH:/usr/local/bin
             export PW=${{ secrets.SERVER_PASSWORD }}
             BRANCH=${{ github.ref_name }}
             PORT=8080
             CONTAINER_NAME="plane-accident-finder-back"
-            
+
             if [ "$BRANCH" == "main" ]; then
               PORT=8082
+              echo "메인 브랜치로 배포합니다. 포트는 $PORT입니다."
             elif [ "$BRANCH" == "test" ]; then
               CONTAINER_NAME="plane-accident-finder-back-test"
               PORT=8083
+              echo "테스트 브랜치로 배포합니다. 컨테이너 이름은 $CONTAINER_NAME, 포트는 $PORT입니다."
             fi
-            
-            echo "브랜치: $BRANCH"
-            echo "컨테이너 이름: $CONTAINER_NAME"
-            echo "포트: $PORT"
-            
-            echo "도커 이미지 풀 : ${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:${BRANCH}"
+
+            echo "도커 이미지를 풀링 중입니다: ${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:${BRANCH}"
             echo $PW | sudo -S docker pull ${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:${BRANCH}
-            
+
             echo "컨테이너 $CONTAINER_NAME 존재 여부 확인 중..."
             if sudo docker ps -a --format '{{.Names}}' | grep -Eq "^${CONTAINER_NAME}\$"; then
               echo "컨테이너 $CONTAINER_NAME 이(가) 존재합니다. 중지 및 삭제 중..."
@@ -105,5 +119,5 @@ jobs:
               -v /etc/localtime:/etc/localtime:ro \
               -v /volume1/projects/plane-accident-finder:/mnt/plane-accident-finder \
               ${{ secrets.DOCKERHUB_USERNAME }}/plane-accident-finder-back:${BRANCH}
-            
+
             echo "배포가 성공적으로 완료되었습니다."
