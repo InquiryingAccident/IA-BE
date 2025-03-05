@@ -91,7 +91,7 @@ public class AircraftTypeScrapingService {
           manufacturer = modelName.split(" ")[0];
         }
         // 상세 URL: href가 상대 URL이면 기본 도메인 추가
-        String fullUrl = href.startsWith("http")
+        String fullUrl = href.startsWith("test")
             ? href
             : "https://asn.flightsafety.org" + href;
 

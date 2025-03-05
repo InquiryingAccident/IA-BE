@@ -42,16 +42,13 @@ public class AuthService {
 
   public SignUpResponse signup(SignupRequest request) {
 
-    // 이메일 검증
-    if (memberRepository.existsByEmail(request.getEmail())) {
-      log.error("회원 이메일이 이미 존재합니다 : {}", request.getEmail());
-      throw new CustomException(ErrorCode.MEMBER_ALREADY_EXISTS);
+    // 활성 회원 중 email 중복 체크
+    if (memberRepository.findByEmail(request.getEmail()).isPresent()) {
+      throw new CustomException(ErrorCode.EMAIL_DUPLICATION);
     }
-
-    // 닉네임 검증
-    if (memberRepository.existsByNickname(request.getNickname())) {
-      log.error("회원 닉네임이 이미 존재합니다 : {}", request.getNickname());
-      throw new CustomException(ErrorCode.MEMBER_ALREADY_EXISTS);
+    // nickname 중복 체크
+    if (memberRepository.findByNickname(request.getNickname()).isPresent()) {
+      throw new CustomException(ErrorCode.NICKNAME_DUPLICATION);
     }
 
     Member member = Member.builder()

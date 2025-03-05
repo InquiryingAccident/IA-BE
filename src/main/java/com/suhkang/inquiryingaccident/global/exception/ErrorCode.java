@@ -14,6 +14,10 @@ public enum ErrorCode {
 
   MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "회원을 찾을 수 없습니다"),
 
+  EMAIL_DUPLICATION(HttpStatus.BAD_REQUEST, "중복된 이메일 입니다"),
+
+  NICKNAME_DUPLICATION(HttpStatus.BAD_REQUEST, "중복된 닉네임 입니다"),
+
   INVALID_MEMBER_ID_FORMAT(HttpStatus.BAD_REQUEST, "회원ID가 UUID 포맷이 아닙니다"),
 
   // UTILS
@@ -23,6 +27,8 @@ public enum ErrorCode {
   FILE_COPY_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "파일 복사에 실패했습니다."),
 
   // AUTHENTICATION
+
+  REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "Refresh Token 을 찾을 수 없습니다"),
 
   INVALID_REFRESH_TOKEN(HttpStatus.UNAUTHORIZED, "유효하지않은 Refresh Token 입니다"),
 
