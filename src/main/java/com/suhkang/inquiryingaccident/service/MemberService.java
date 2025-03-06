@@ -1,7 +1,7 @@
 package com.suhkang.inquiryingaccident.service;
 
-import static com.suhkang.inquiryingaccident.global.util.LogUtil.lineLogDebug;
-import static com.suhkang.inquiryingaccident.global.util.LogUtil.superLogDebug;
+import static com.suhkang.inquiryingaccident.global.util.LogUtil.lineLog;
+import static com.suhkang.inquiryingaccident.global.util.LogUtil.superLog;
 
 import com.suhkang.inquiryingaccident.global.exception.CustomException;
 import com.suhkang.inquiryingaccident.global.exception.ErrorCode;
@@ -42,10 +42,10 @@ public class MemberService {
         .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
     refreshTokenRepository.deleteById(refreshToken.getRefreshTokenId());
 
-    superLogDebug(refreshToken);
-    lineLogDebug(null);
-    lineLogDebug("회원: " + request.getMember().getEmail() + " 로그아웃 완료" );
-    lineLogDebug(null);
+    superLog(refreshToken);
+    lineLog(null);
+    lineLog("회원: " + request.getMember().getEmail() + " 로그아웃 완료" );
+    lineLog(null);
   }
 
   @Transactional
@@ -53,7 +53,7 @@ public class MemberService {
     Member member = memberRepository.findById(memberId)
         .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     refreshTokenRepository.deleteByMemberId(memberId);
-    memberRepository.delete(member); // Soft Delete (isDeleted = true)
+    memberRepository.delete(member);
   }
 
   @Transactional(readOnly = true)

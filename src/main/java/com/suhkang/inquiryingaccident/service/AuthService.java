@@ -1,5 +1,8 @@
 package com.suhkang.inquiryingaccident.service;
 
+import static com.suhkang.inquiryingaccident.global.util.LogUtil.lineLog;
+import static com.suhkang.inquiryingaccident.global.util.LogUtil.superLog;
+
 import com.suhkang.inquiryingaccident.global.exception.CustomException;
 import com.suhkang.inquiryingaccident.global.exception.ErrorCode;
 import com.suhkang.inquiryingaccident.global.util.JwtTokenProvider;
@@ -10,6 +13,7 @@ import com.suhkang.inquiryingaccident.object.dao.Member;
 import com.suhkang.inquiryingaccident.object.dao.RefreshToken;
 import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
 import com.suhkang.inquiryingaccident.object.request.LoginRequest;
+import com.suhkang.inquiryingaccident.object.request.LogoutRequest;
 import com.suhkang.inquiryingaccident.object.request.RefreshAccessTokenByRefreshTokenRequest;
 import com.suhkang.inquiryingaccident.object.request.SignupRequest;
 import com.suhkang.inquiryingaccident.object.response.LoginResponse;
@@ -28,6 +32,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -134,4 +139,15 @@ public class AuthService {
   }
 
 
+  @Transactional
+  public void logout(LogoutRequest request) {
+    RefreshToken refreshToken = refreshTokenRepository.findByToken(request.getRefreshToken())
+        .orElseThrow(() -> new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND));
+    refreshTokenRepository.deleteById(refreshToken.getRefreshTokenId());
+
+    superLog(refreshToken);
+    lineLog(null);
+    lineLog("회원: " + request.getMember().getEmail() + " 로그아웃 완료");
+    lineLog(null);
+  }
 }

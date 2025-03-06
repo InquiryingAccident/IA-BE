@@ -1,7 +1,9 @@
 package com.suhkang.inquiryingaccident.controller;
 
 import com.suhkang.inquiryingaccident.object.constants.Author;
+import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
 import com.suhkang.inquiryingaccident.object.request.LoginRequest;
+import com.suhkang.inquiryingaccident.object.request.LogoutRequest;
 import com.suhkang.inquiryingaccident.object.request.RefreshAccessTokenByRefreshTokenRequest;
 import com.suhkang.inquiryingaccident.object.request.SignupRequest;
 import com.suhkang.inquiryingaccident.object.response.LoginResponse;
@@ -11,6 +13,7 @@ import com.suhkang.inquiryingaccident.global.docs.ApiChangeLog;
 import com.suhkang.inquiryingaccident.global.docs.ApiChangeLogs;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ModelAttribute;
 
 public interface AuthControllerDocs {
@@ -121,4 +124,40 @@ public interface AuthControllerDocs {
       """
   )
   ResponseEntity<RefreshAccessTokenByRefreshTokenResponse> refreshAccessTokenByRefreshToken(@ModelAttribute RefreshAccessTokenByRefreshTokenRequest request);
+
+
+  @ApiChangeLogs({
+      @ApiChangeLog(
+          date = "2025.03.06",
+          author = Author.SUHSAECHAN,
+          issueNumber = 30,
+          description = "로그아웃 API 위치 변경, 기존 Member API 쪽 -> Auth API로 변경"
+      ),
+      @ApiChangeLog(
+          date = "2025.03.03",
+          author = Author.SUHSAECHAN,
+          issueNumber = 22,
+          description = "로그아웃 API 추가"
+      )
+  })
+  @Operation(
+      summary = "로그아웃",
+      description = """
+          ## 인증(JWT): **필요**
+          
+          ## 요청 파라미터 (LogoutRequest)
+          - **`refreshToken`**: 로그아웃을 위한 리프레시 토큰
+
+          ## 반환값
+          - 없음 (204 No Content)
+          
+          ## 에러코드
+          - **`INVALID_REFRESH_TOKEN`**: 유효하지 않은 Refresh Token 입니다.
+          - **`REFRESH_TOKEN_NOT_FOUND`**: 존재하지 않는 Refresh Token 입니다.
+          """
+  )
+  ResponseEntity<Void> logout(
+      @AuthenticationPrincipal CustomUserDetails customUserDetails,
+      @ModelAttribute LogoutRequest request );
+
 }
