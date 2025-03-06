@@ -17,6 +17,7 @@ public class SecurityUrls {
       "/api/auth/login",               // 로그인
       "/api/auth/refresh",             // 리프레시 토큰
       "/api/test/**",                  //FIXME: 테스트 API
+      "/api/member/check-email",       // 이메일 중복 확인
 
       // Swagger
       "/docs/**",                      // Swagger UI
