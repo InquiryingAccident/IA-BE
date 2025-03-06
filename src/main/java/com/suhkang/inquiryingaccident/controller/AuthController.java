@@ -1,7 +1,9 @@
 package com.suhkang.inquiryingaccident.controller;
 
 import com.suhkang.inquiryingaccident.global.log.LogMethodInvocation;
+import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
 import com.suhkang.inquiryingaccident.object.request.LoginRequest;
+import com.suhkang.inquiryingaccident.object.request.LogoutRequest;
 import com.suhkang.inquiryingaccident.object.request.RefreshAccessTokenByRefreshTokenRequest;
 import com.suhkang.inquiryingaccident.object.request.SignupRequest;
 import com.suhkang.inquiryingaccident.object.response.LoginResponse;
@@ -14,6 +16,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -54,5 +57,15 @@ public class AuthController implements AuthControllerDocs{
   public ResponseEntity<RefreshAccessTokenByRefreshTokenResponse> refreshAccessTokenByRefreshToken(
       @ModelAttribute RefreshAccessTokenByRefreshTokenRequest request) {
     return ResponseEntity.ok(authService.refreshAccessTokenByRefreshToken(request));
+  }
+
+  @PostMapping(value = "/logout", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @LogMethodInvocation
+  public ResponseEntity<Void> logout(
+      @AuthenticationPrincipal CustomUserDetails customUserDetails,
+      @ModelAttribute LogoutRequest request) {
+    request.setMember(customUserDetails.getMember());
+    authService.logout(request);
+    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 }

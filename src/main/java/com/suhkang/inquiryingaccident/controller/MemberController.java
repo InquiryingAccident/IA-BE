@@ -3,7 +3,6 @@ package com.suhkang.inquiryingaccident.controller;
 import com.suhkang.inquiryingaccident.global.log.LogMethodInvocation;
 import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
 import com.suhkang.inquiryingaccident.object.request.IsEmailAvailableRequest;
-import com.suhkang.inquiryingaccident.object.request.LogoutRequest;
 import com.suhkang.inquiryingaccident.object.response.MyInfoResponse;
 import com.suhkang.inquiryingaccident.service.MemberService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,16 +34,6 @@ public class MemberController implements MemberControllerDocs {
       @AuthenticationPrincipal CustomUserDetails customUserDetails
   ) {
     return ResponseEntity.ok(memberService.myInfo(customUserDetails.getMember()));
-  }
-
-  @PostMapping(value = "/logout", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @LogMethodInvocation
-  public ResponseEntity<Void> logout(
-      @AuthenticationPrincipal CustomUserDetails customUserDetails,
-      @ModelAttribute LogoutRequest request ){
-    request.setMember(customUserDetails.getMember());
-    memberService.logout(request);
-    return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
   }
 
   @DeleteMapping("/withdraw")

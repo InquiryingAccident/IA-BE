@@ -1,5 +1,8 @@
 package com.suhkang.inquiryingaccident.service;
 
+import static com.suhkang.inquiryingaccident.global.util.LogUtil.lineLog;
+import static com.suhkang.inquiryingaccident.global.util.LogUtil.superLogDebug;
+
 import com.suhkang.inquiryingaccident.global.exception.CustomException;
 import com.suhkang.inquiryingaccident.global.exception.ErrorCode;
 import com.suhkang.inquiryingaccident.global.util.JwtTokenProvider;
@@ -10,6 +13,7 @@ import com.suhkang.inquiryingaccident.object.dao.Member;
 import com.suhkang.inquiryingaccident.object.dao.RefreshToken;
 import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
 import com.suhkang.inquiryingaccident.object.request.LoginRequest;
+import com.suhkang.inquiryingaccident.object.request.LogoutRequest;
 import com.suhkang.inquiryingaccident.object.request.RefreshAccessTokenByRefreshTokenRequest;
 import com.suhkang.inquiryingaccident.object.request.SignupRequest;
 import com.suhkang.inquiryingaccident.object.response.LoginResponse;
@@ -28,6 +32,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @Slf4j
@@ -41,12 +46,17 @@ public class AuthService {
   private final JwtTokenProvider jwtTokenProvider;
 
   public SignUpResponse signup(SignupRequest request) {
+    log.info("회원가입 요청 시작 - email: {}", request.getEmail());
+    lineLog("Checking email duplication");
 
     // 활성 회원 중 email 중복 체크
     if (memberRepository.existsByEmail(request.getEmail())) {
+      log.warn("중복된 이메일 감지 - email: {}", request.getEmail());
       throw new CustomException(ErrorCode.EMAIL_DUPLICATION);
     }
+    log.debug("이메일 중복 없음 - email: {}", request.getEmail());
 
+    lineLog("Creating new member");
     Member member = Member.builder()
         .email(request.getEmail())
         .nickname(request.getNickname())
@@ -56,6 +66,8 @@ public class AuthService {
         .build();
 
     Member savedMember = memberRepository.save(member);
+    superLogDebug(savedMember); // 저장된 회원 객체 출력
+    log.info("회원가입 완료 - memberId: {}", savedMember.getMemberId());
 
     return SignUpResponse.builder()
         .member(savedMember)
@@ -63,24 +75,29 @@ public class AuthService {
   }
 
   public LoginResponse login(LoginRequest request) {
-    // Authentication -> 인증 처리
+    log.info("로그인 요청 시작 - email: {}", request.getEmail());
+    lineLog("Authenticating user");
+
+    // 인증 처리
     Authentication authentication = authenticationManager.authenticate(
         new UsernamePasswordAuthenticationToken(request.getEmail(), request.getPassword())
     );
-
     SecurityContextHolder.getContext().setAuthentication(authentication);
+    log.debug("인증 성공 - email: {}", request.getEmail());
+
     String accessToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.ACCESS);
     String refreshToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.REFRESH);
+    log.debug("토큰 생성 완료 - accessToken: {}, refreshToken: {}", accessToken, refreshToken);
 
-    // 현재 인증된 회원 정보 가져오기
     CustomUserDetails userDetails = (CustomUserDetails) authentication.getPrincipal();
     Member member = userDetails.getMember();
 
-    // 마지막 로그인 시간 업데이트
+    lineLog("Updating last login time");
     member.setLastLoginTime(LocalDateTime.now());
     memberRepository.save(member);
+    log.debug("마지막 로그인 시간 업데이트 - memberId: {}", member.getMemberId());
 
-    // RefreshToken 엔티티 생성 및 저장
+    lineLog("Saving refresh token");
     RefreshToken refreshTokenEntity = RefreshToken.builder()
         .token(refreshToken)
         .memberId(member.getMemberId())
@@ -88,7 +105,9 @@ public class AuthService {
         .expiryDate(Instant.now().plusMillis(JwtTokenType.REFRESH.getDurationMilliseconds()))
         .build();
     refreshTokenRepository.save(refreshTokenEntity);
+    superLogDebug(refreshTokenEntity); // 리프레시 토큰 객체 출력
 
+    log.info("로그인 완료 - memberId: {}", member.getMemberId());
     return LoginResponse.builder()
         .accessToken(accessToken)
         .refreshToken(refreshToken)
@@ -96,42 +115,69 @@ public class AuthService {
   }
 
   public RefreshAccessTokenByRefreshTokenResponse refreshAccessTokenByRefreshToken(
-      RefreshAccessTokenByRefreshTokenRequest request
-  ) {
-    // 저장소에서 refreshToken 엔티티 조회
-    RefreshToken refreshTokenEntity = refreshTokenRepository.findByToken(request.getRefreshToken())
-        .orElseThrow(() -> new CustomException(ErrorCode.INVALID_REFRESH_TOKEN));
+      RefreshAccessTokenByRefreshTokenRequest request) {
+    log.info("토큰 갱신 요청 시작 - refreshToken: {}", request.getRefreshToken());
+    lineLog("Finding refresh token");
 
-    // refreshToken 회전 방식: 유효 여부와 상관없이 항상 새로운 토큰 발급
+    RefreshToken refreshTokenEntity = refreshTokenRepository.findByToken(request.getRefreshToken())
+        .orElseThrow(() -> {
+          log.warn("유효하지 않은 리프레시 토큰 - token: {}", request.getRefreshToken());
+          return new CustomException(ErrorCode.INVALID_REFRESH_TOKEN);
+        });
+    superLogDebug(refreshTokenEntity); // 리프레시 토큰 객체 출력
+
+    // 토큰 상태 확인
     if (RefreshToken.isExpired(refreshTokenEntity)) {
-      log.info("만료된 토큰이 전달되었습니다. 자동 로그인을 위해 토큰을 갱신합니다. memberEmail: {}", refreshTokenEntity.getMemberEmail());
+      log.info("만료된 토큰 감지 - memberEmail: {}", refreshTokenEntity.getMemberEmail());
     } else {
-      log.info("유효한 토큰이 전달되었습니다. 자동 로그인을 위해 토큰을 갱신합니다. memberEmail: {}", refreshTokenEntity.getMemberEmail());
+      log.info("유효한 토큰 확인 - memberEmail: {}", refreshTokenEntity.getMemberEmail());
     }
 
-    // 저장된 memberId를 사용하여 회원 조회
+    lineLog("Retrieving member");
     Member member = memberRepository.findById(refreshTokenEntity.getMemberId())
-        .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        .orElseThrow(() -> {
+          log.warn("회원 조회 실패 - memberId: {}", refreshTokenEntity.getMemberId());
+          return new CustomException(ErrorCode.MEMBER_NOT_FOUND);
+        });
     CustomUserDetails userDetails = new CustomUserDetails(member);
     Authentication authentication =
         new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
 
-    // 새로운 accessToken과 refreshToken 생성
+    lineLog("Generating new tokens");
     String newAccessToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.ACCESS);
     String newRefreshToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.REFRESH);
+    log.debug("새 토큰 생성 - newAccessToken: {}, newRefreshToken: {}", newAccessToken, newRefreshToken);
 
-    // refreshToken 엔티티 업데이트: 새로운 토큰 값과 만료시간 적용
+    lineLog("Updating refresh token");
     refreshTokenEntity.setToken(newRefreshToken);
     refreshTokenEntity.setExpiryDate(Instant.now().plusMillis(JwtTokenType.REFRESH.getDurationMilliseconds()));
     refreshTokenRepository.save(refreshTokenEntity);
+    superLogDebug(refreshTokenEntity); // 업데이트된 리프레시 토큰 출력
 
-    log.info("새로운 액세스 토큰, 리프레시 토큰이 발급되었습니다. memberEmail: {}", member.getEmail());
-
+    log.info("토큰 갱신 완료 - memberEmail: {}", member.getEmail());
     return RefreshAccessTokenByRefreshTokenResponse.builder()
         .accessToken(newAccessToken)
         .refreshToken(newRefreshToken)
         .build();
   }
 
+  @Transactional
+  public void logout(LogoutRequest request) {
+    log.info("로그아웃 요청 시작 - memberEmail: {}", request.getMember().getEmail());
+    lineLog("Finding refresh token");
 
+    RefreshToken refreshToken = refreshTokenRepository.findByToken(request.getRefreshToken())
+        .orElseThrow(() -> {
+          log.warn("리프레시 토큰 조회 실패 - token: {}", request.getRefreshToken());
+          return new CustomException(ErrorCode.REFRESH_TOKEN_NOT_FOUND);
+        });
+    superLogDebug(refreshToken); // 리프레시 토큰 객체 출력
+
+    lineLog("Deleting refresh token");
+    refreshTokenRepository.deleteById(refreshToken.getRefreshTokenId());
+    log.debug("리프레시 토큰 삭제 완료 - refreshTokenId: {}", refreshToken.getRefreshTokenId());
+
+    lineLog("Logout completed");
+    log.info("회원 로그아웃 완료 - email: {}", request.getMember().getEmail());
+  }
 }
