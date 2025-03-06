@@ -43,12 +43,8 @@ public class AuthService {
   public SignUpResponse signup(SignupRequest request) {
 
     // 활성 회원 중 email 중복 체크
-    if (memberRepository.findByEmail(request.getEmail()).isPresent()) {
+    if (memberRepository.existsByEmail(request.getEmail())) {
       throw new CustomException(ErrorCode.EMAIL_DUPLICATION);
-    }
-    // nickname 중복 체크
-    if (memberRepository.findByNickname(request.getNickname()).isPresent()) {
-      throw new CustomException(ErrorCode.NICKNAME_DUPLICATION);
     }
 
     Member member = Member.builder()

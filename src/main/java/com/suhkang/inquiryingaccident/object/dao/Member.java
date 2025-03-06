@@ -44,12 +44,10 @@ public class Member extends BaseEntity {
   @Column(updatable = false, nullable = false)
   private UUID memberId;
 
-  @Column(nullable = false)
   private String email;
 
   private String password;
 
-  @Column(unique = true)
   private String nickname;
 
   @Column
