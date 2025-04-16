@@ -126,6 +126,12 @@ public class AuthService {
     log.info("소셜 로그인 요청 시작 - email: {}, socialPlatform: {}", request.getEmail(), request.getSocialPlatform());
     lineLog("Checking if member exists");
 
+    // 이메일 검증
+    if (request.getEmail() == null || request.getEmail().isEmpty()) {
+      log.warn("이메일이 비어있음 - email: {}", request.getEmail());
+      throw new CustomException(ErrorCode.EMAIL_NOT_FOUND);
+    }
+
     Member member = null;
     boolean isFirstLogin = false;
 
