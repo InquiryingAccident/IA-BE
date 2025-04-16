@@ -54,6 +54,12 @@ public interface AuthControllerDocs {
 
   @ApiChangeLogs({
       @ApiChangeLog(
+          date = "2025.04.16",
+          author = Author.SUHSAECHAN,
+          issueNumber = 37,
+          description = "소셜 로그인 DOCS 개선 - 애플 로그인 특별 처리 방식 상세화"
+      ),
+      @ApiChangeLog(
           date = "2025.05.16",
           author = Author.SUHSAECHAN,
           issueNumber = 37,
@@ -66,22 +72,49 @@ public interface AuthControllerDocs {
         ## 인증(JWT): **불필요**
         
         ## 참고사항
-        - **`email`**: 이메일 형식에 맞아야 합니다.
-        - **`socialPlatform`**: 소셜 플랫폼 정보 (KAKAO, APPLE, NAVER, GOOGLE 등)
-        - **`socialPlatformId`**: 애플 소셜 로그인 시 필수값, 애플은 첫 로그인에만 ID 정보를 제공하므로 저장 필요
+        - **`SocialPlatform`**: 소셜 로그인 플랫폼 (대소문자 구분)
+          - `KAKAO`: 카카오 로그인
+          - `APPLE`: 애플 로그인
+          - `NAVER`: 네이버 로그인
+          - `GOOGLE`: 구글 로그인
+          - `FACEBOOK`: 페이스북 로그인
+          - `TWITTER`: 트위터 로그인
+          - `INSTAGRAM`: 인스타그램 로그인
+          - `LINKEDIN`: 링크드인 로그인
+          - `GITHUB`: 깃허브 로그인
+          - `DISCORD`: 디스코드 로그인
+          - `SLACK`: 슬랙 로그인
+        
+        - **애플 로그인 특별 처리**:
+          - 애플 로그인은 **최초 로그인 시에만** 사용자 정보(이메일, 이름)를 제공합니다.
+          - 두 번째 로그인부터는 사용자 정보를 제공하지 않으므로, 첫 로그인 시 `socialPlatformId`를 백엔드에 전달하고 저장해야 합니다.
+          - 이후 로그인시에는 저장된 ID로 사용자를 식별합니다.
+          - 애플 로그인 시 `socialPlatformId` 파라미터는 **필수값**입니다.
 
         ## 요청 파라미터 (SocialLoginRequest)
-        - **`email`**: 이메일 주소
-        - **`socialPlatform`**: 소셜 플랫폼 (KAKAO, APPLE, NAVER, GOOGLE, FACEBOOK, TWITTER, INSTAGRAM, LINKEDIN, GITHUB, DISCORD, SLACK)
-        - **`socialPlatformId`**: 소셜 플랫폼 ID (애플 로그인 시 필수)
+        - **`email`**: 이메일 주소 (필수)
+        - **`socialPlatform`**: 소셜 플랫폼 Enum 값 (필수)
+        - **`socialPlatformId`**: 소셜 플랫폼 ID
+          - 애플 로그인의 경우 **필수** (애플 인증 응답의 `identityToken` 또는 `user` 값)
+          - 다른 소셜 로그인은 선택사항
                            
         ## 반환값 (SocialLoginResponse)
         - **`accessToken`**: 엑세스 토큰
         - **`refreshToken`**: 리프레쉬 토큰
         - **`isFirstLogin`**: 첫 로그인 여부 (true/false)
+          - `true`: 최초 로그인, 사용자 정보 추가 입력이 필요할 수 있음
+          - `false`: 기존 로그인, 추가 정보 입력 불필요
 
+        ## 처리 흐름
+        1. 일반 소셜 로그인: 이메일과 소셜 플랫폼으로 사용자 식별
+        2. 애플 로그인:
+           - 첫 로그인: `socialPlatformId`와 `email`로 신규 회원 생성
+           - 이후 로그인: `socialPlatformId`로 사용자 식별 (이메일 정보 제공되지 않음)
+        
         ## 에러코드
         - **`MEMBER_NOT_FOUND`**: 회원을 찾을 수 없습니다.
+        - **`INVALID_SOCIAL_PLATFORM`**: 지원하지 않는 소셜 플랫폼입니다.
+        - **`MISSING_REQUIRED_PARAMETER`**: 필수 파라미터가 누락되었습니다.
         """
   )
   ResponseEntity<SocialLoginResponse> socialLogin(@ModelAttribute SocialLoginRequest socialLoginRequest);
@@ -195,6 +228,4 @@ public interface AuthControllerDocs {
   ResponseEntity<Void> logout(
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
       @ModelAttribute LogoutRequest request );
-
-
 }
