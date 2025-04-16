@@ -38,6 +38,12 @@ public enum ErrorCode {
 
   INVALID_CREDENTIALS(HttpStatus.UNAUTHORIZED, "ID와 비밀번호를 정확히 입력해 주십시오."),
 
+  MISSING_SOCIAL_PLATFORM_ID(HttpStatus.INTERNAL_SERVER_ERROR, "소셜 로그인 ID 값이 필요합니다."),
+
+  MISSING_EMAIL(HttpStatus.INTERNAL_SERVER_ERROR, "이메일 값이 필요합니다."),
+
+  INVALID_SOCIAL_PLATFORM(HttpStatus.INTERNAL_SERVER_ERROR, "지원하지 않는 소셜 플랫폼입니다."),
+
   // AIRCRAFT
 
   AIRCRAFT_NOT_FOUND(HttpStatus.NOT_FOUND, "항공기 정보를 찾을 수 없습니다"),

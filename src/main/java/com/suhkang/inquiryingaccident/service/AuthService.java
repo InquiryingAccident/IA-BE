@@ -124,15 +124,36 @@ public class AuthService {
   @Transactional
   public SocialLoginResponse SocialLogin(SocialLoginRequest request) {
     log.info("소셜 로그인 요청 시작 - email: {}, socialPlatform: {}", request.getEmail(), request.getSocialPlatform());
-    lineLog("Checking if member exists");
+    lineLog("Validating request parameters");
 
+    // 소셜 플랫폼 검증
+    if (request.getSocialPlatform() == null) {
+      log.warn("소셜 플랫폼이 누락되었습니다.");
+      throw new CustomException(ErrorCode.INVALID_SOCIAL_PLATFORM);
+    }
+
+    // 애플 로그인 특수 처리 - socialPlatformId는 필수
+    if (SocialPlatform.APPLE.equals(request.getSocialPlatform())) {
+      if (request.getSocialPlatformId() == null || request.getSocialPlatformId().trim().isEmpty()) {
+        log.warn("애플 로그인 요청에 socialPlatformId가 누락되었습니다.");
+        throw new CustomException(ErrorCode.MISSING_SOCIAL_PLATFORM_ID);
+      }
+    }
+    // 애플이 아닌 다른 소셜 로그인의 경우 이메일은 항상 필수
+    else if (request.getEmail() == null || request.getEmail().trim().isEmpty()) {
+      log.warn("소셜 로그인 요청에 이메일이 누락되었습니다.");
+      throw new CustomException(ErrorCode.MISSING_EMAIL);
+    }
+
+    lineLog("Checking if member exists");
     Member member = null;
     boolean isFirstLogin = false;
 
-    // 애플 로그인의 경우 특별 처리
-    if (SocialPlatform.APPLE.equals(request.getSocialPlatform()) && request.getSocialPlatformId() != null) {
+    // 애플 로그인의 경우
+    if (SocialPlatform.APPLE.equals(request.getSocialPlatform())) {
       log.debug("애플 로그인 처리 - socialPlatformId: {}", request.getSocialPlatformId());
-      // 애플 ID로 유저 검색
+
+      // 1. socialPlatformId로 먼저 회원 검색 (이후 로그인의 경우)
       Optional<Member> memberByAppleId = memberRepository.findBySocialPlatformAndSocialPlatformId(
           SocialPlatform.APPLE, request.getSocialPlatformId());
 
@@ -140,43 +161,59 @@ public class AuthService {
         member = memberByAppleId.get();
         log.debug("애플 ID로 회원 찾음 - memberId: {}", member.getMemberId());
       }
-    }
+      // 2. 애플 ID로 회원을 찾지 못했고, 이메일이 제공된 경우 (첫 로그인)
+      else if (request.getEmail() != null && !request.getEmail().trim().isEmpty()) {
+        Optional<Member> memberByEmail = memberRepository.findByEmailAndSocialPlatform(
+            request.getEmail(), SocialPlatform.APPLE);
 
-    // 다른 소셜 로그인 또는 애플 ID로 회원을 찾지 못한 경우 이메일로 검색
-    if (member == null) {
+        if (memberByEmail.isPresent()) {
+          member = memberByEmail.get();
+          log.debug("이메일과 애플 플랫폼으로 회원 찾음 - memberId: {}", member.getMemberId());
+
+          // ID 정보 없으면 갱신
+          if (member.getSocialPlatformId() == null || member.getSocialPlatformId().trim().isEmpty()) {
+            member.setSocialPlatformId(request.getSocialPlatformId());
+            member = memberRepository.save(member);
+            log.debug("애플 ID 업데이트 - memberId: {}, appleId: {}", member.getMemberId(), request.getSocialPlatformId());
+          }
+        }
+      }
+    }
+    // 다른 소셜 로그인의 경우 (항상 이메일 필요)
+    else {
       Optional<Member> memberByEmail = memberRepository.findByEmailAndSocialPlatform(
           request.getEmail(), request.getSocialPlatform());
 
       if (memberByEmail.isPresent()) {
         member = memberByEmail.get();
         log.debug("이메일과 소셜 플랫폼으로 회원 찾음 - memberId: {}", member.getMemberId());
-      } else {
-        // 새 회원 생성
-        isFirstLogin = true;
-        log.debug("신규 소셜 회원 가입 - email: {}, socialPlatform: {}", request.getEmail(), request.getSocialPlatform());
-
-        member = Member.builder()
-            .email(request.getEmail())
-            .socialPlatform(request.getSocialPlatform())
-            .socialPlatformId(request.getSocialPlatformId())
-            .roles(new HashSet<>(Set.of(Role.ROLE_USER)))
-            .accountStatus(AccountStatus.ACTIVE)
-            .isFirstLogin(true)
-            .build();
-
-        member = memberRepository.save(member);
-        superLogDebug(member); // 저장된 회원 객체 출력
-        log.info("신규 소셜 회원 가입 완료 - memberId: {}", member.getMemberId());
       }
     }
 
-    // 애플 로그인이고, socialPlatformId가 있는 경우, 기존 계정에 ID 업데이트
-    if (SocialPlatform.APPLE.equals(request.getSocialPlatform())
-        && request.getSocialPlatformId() != null
-        && member.getSocialPlatformId() == null) {
-      member.setSocialPlatformId(request.getSocialPlatformId());
+    // 회원이 존재하지 않는 경우 신규 가입
+    if (member == null) {
+      // 애플 첫 로그인이면서 이메일이 없는 경우 - 에러
+      if (SocialPlatform.APPLE.equals(request.getSocialPlatform())
+          && (request.getEmail() == null || request.getEmail().trim().isEmpty())) {
+        log.warn("애플 첫 로그인 시 이메일 정보가 필요합니다.");
+        throw new CustomException(ErrorCode.MISSING_EMAIL);
+      }
+
+      isFirstLogin = true;
+      log.debug("신규 소셜 회원 가입 - email: {}, socialPlatform: {}", request.getEmail(), request.getSocialPlatform());
+
+      member = Member.builder()
+          .email(request.getEmail())
+          .socialPlatform(request.getSocialPlatform())
+          .socialPlatformId(request.getSocialPlatformId())
+          .roles(new HashSet<>(Set.of(Role.ROLE_USER)))
+          .accountStatus(AccountStatus.ACTIVE)
+          .isFirstLogin(true)
+          .build();
+
       member = memberRepository.save(member);
-      log.debug("애플 ID 업데이트 - memberId: {}, appleId: {}", member.getMemberId(), request.getSocialPlatformId());
+      superLogDebug(member);
+      log.info("신규 소셜 회원 가입 완료 - memberId: {}", member.getMemberId());
     }
 
     // 로그인 처리
