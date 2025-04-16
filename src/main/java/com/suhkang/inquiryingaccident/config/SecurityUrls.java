@@ -15,7 +15,7 @@ public class SecurityUrls {
       // API
 
       "/api/auth/signup",              // 회원가입
-      "/social-login",                 // 소셜 로그인 및 소셜 회원가입
+      "/api/auth/social-login",        // 소셜 로그인 및 소셜 회원가입
       "/api/auth/login",               // 로그인
       "/api/auth/refresh",             // 리프레시 토큰
       "/api/test/**",                  //FIXME: 테스트 API
