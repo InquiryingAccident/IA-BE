@@ -26,6 +26,7 @@ import com.suhkang.inquiryingaccident.repository.MemberRepository;
 import com.suhkang.inquiryingaccident.repository.RefreshTokenRepository;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
@@ -158,7 +159,7 @@ public class AuthService {
             .email(request.getEmail())
             .socialPlatform(request.getSocialPlatform())
             .socialPlatformId(request.getSocialPlatformId())
-            .roles(Set.of(Role.ROLE_USER))
+            .roles(new HashSet<>(Set.of(Role.ROLE_USER)))
             .accountStatus(AccountStatus.ACTIVE)
             .isFirstLogin(true)
             .build();
