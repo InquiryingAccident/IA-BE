@@ -4,6 +4,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.suhkang.inquiryingaccident.object.constants.AccountStatus;
 import com.suhkang.inquiryingaccident.object.constants.Role;
+import com.suhkang.inquiryingaccident.object.constants.SocialPlatform;
 import jakarta.persistence.CollectionTable;
 import jakarta.persistence.Column;
 import jakarta.persistence.ElementCollection;
@@ -46,7 +47,14 @@ public class Member extends BaseEntity {
 
   private String email;
 
+  // 소셜로그인이 아닌경우 존재
   private String password;
+
+  @Enumerated(EnumType.STRING)
+  private SocialPlatform socialPlatform;
+
+  // 애플 소셜로그인 때 확인 필요
+  private String socialPlatformId;
 
   private String nickname;
 

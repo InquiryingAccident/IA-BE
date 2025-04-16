@@ -13,7 +13,7 @@ import lombok.ToString;
 @ToString
 @NoArgsConstructor
 @AllArgsConstructor
-public class LoginResponse {
+public class SocialLoginResponse {
 
   private String accessToken;
 
