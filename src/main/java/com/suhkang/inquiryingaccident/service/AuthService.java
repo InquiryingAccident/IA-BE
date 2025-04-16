@@ -9,6 +9,7 @@ import com.suhkang.inquiryingaccident.global.util.JwtTokenProvider;
 import com.suhkang.inquiryingaccident.object.constants.AccountStatus;
 import com.suhkang.inquiryingaccident.object.constants.JwtTokenType;
 import com.suhkang.inquiryingaccident.object.constants.Role;
+import com.suhkang.inquiryingaccident.object.constants.SocialPlatform;
 import com.suhkang.inquiryingaccident.object.dao.Member;
 import com.suhkang.inquiryingaccident.object.dao.RefreshToken;
 import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
@@ -16,13 +17,16 @@ import com.suhkang.inquiryingaccident.object.request.LoginRequest;
 import com.suhkang.inquiryingaccident.object.request.LogoutRequest;
 import com.suhkang.inquiryingaccident.object.request.RefreshAccessTokenByRefreshTokenRequest;
 import com.suhkang.inquiryingaccident.object.request.SignupRequest;
+import com.suhkang.inquiryingaccident.object.request.SocialLoginRequest;
 import com.suhkang.inquiryingaccident.object.response.LoginResponse;
 import com.suhkang.inquiryingaccident.object.response.RefreshAccessTokenByRefreshTokenResponse;
 import com.suhkang.inquiryingaccident.object.response.SignUpResponse;
+import com.suhkang.inquiryingaccident.object.response.SocialLoginResponse;
 import com.suhkang.inquiryingaccident.repository.MemberRepository;
 import com.suhkang.inquiryingaccident.repository.RefreshTokenRepository;
 import java.time.Instant;
 import java.time.LocalDateTime;
+import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +50,7 @@ public class AuthService {
   private final JwtTokenProvider jwtTokenProvider;
 
   public SignUpResponse signup(SignupRequest request) {
+    // 기존 코드 유지
     log.info("회원가입 요청 시작 - email: {}", request.getEmail());
     lineLog("Checking email duplication");
 
@@ -75,6 +80,7 @@ public class AuthService {
   }
 
   public LoginResponse login(LoginRequest request) {
+    // 기존 코드 유지
     log.info("로그인 요청 시작 - email: {}", request.getEmail());
     lineLog("Authenticating user");
 
@@ -114,8 +120,105 @@ public class AuthService {
         .build();
   }
 
+  @Transactional
+  public SocialLoginResponse SocialLogin(SocialLoginRequest request) {
+    log.info("소셜 로그인 요청 시작 - email: {}, socialPlatform: {}", request.getEmail(), request.getSocialPlatform());
+    lineLog("Checking if member exists");
+
+    Member member = null;
+    boolean isFirstLogin = false;
+
+    // 애플 로그인의 경우 특별 처리
+    if (SocialPlatform.APPLE.equals(request.getSocialPlatform()) && request.getSocialPlatformId() != null) {
+      log.debug("애플 로그인 처리 - socialPlatformId: {}", request.getSocialPlatformId());
+      // 애플 ID로 유저 검색
+      Optional<Member> memberByAppleId = memberRepository.findBySocialPlatformAndSocialPlatformId(
+          SocialPlatform.APPLE, request.getSocialPlatformId());
+
+      if (memberByAppleId.isPresent()) {
+        member = memberByAppleId.get();
+        log.debug("애플 ID로 회원 찾음 - memberId: {}", member.getMemberId());
+      }
+    }
+
+    // 다른 소셜 로그인 또는 애플 ID로 회원을 찾지 못한 경우 이메일로 검색
+    if (member == null) {
+      Optional<Member> memberByEmail = memberRepository.findByEmailAndSocialPlatform(
+          request.getEmail(), request.getSocialPlatform());
+
+      if (memberByEmail.isPresent()) {
+        member = memberByEmail.get();
+        log.debug("이메일과 소셜 플랫폼으로 회원 찾음 - memberId: {}", member.getMemberId());
+      } else {
+        // 새 회원 생성
+        isFirstLogin = true;
+        log.debug("신규 소셜 회원 가입 - email: {}, socialPlatform: {}", request.getEmail(), request.getSocialPlatform());
+
+        member = Member.builder()
+            .email(request.getEmail())
+            .socialPlatform(request.getSocialPlatform())
+            .socialPlatformId(request.getSocialPlatformId())
+            .roles(Set.of(Role.ROLE_USER))
+            .accountStatus(AccountStatus.ACTIVE)
+            .isFirstLogin(true)
+            .build();
+
+        member = memberRepository.save(member);
+        superLogDebug(member); // 저장된 회원 객체 출력
+        log.info("신규 소셜 회원 가입 완료 - memberId: {}", member.getMemberId());
+      }
+    }
+
+    // 애플 로그인이고, socialPlatformId가 있는 경우, 기존 계정에 ID 업데이트
+    if (SocialPlatform.APPLE.equals(request.getSocialPlatform())
+        && request.getSocialPlatformId() != null
+        && member.getSocialPlatformId() == null) {
+      member.setSocialPlatformId(request.getSocialPlatformId());
+      member = memberRepository.save(member);
+      log.debug("애플 ID 업데이트 - memberId: {}, appleId: {}", member.getMemberId(), request.getSocialPlatformId());
+    }
+
+    // 로그인 처리
+    CustomUserDetails userDetails = new CustomUserDetails(member);
+    Authentication authentication =
+        new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+    SecurityContextHolder.getContext().setAuthentication(authentication);
+
+    lineLog("Generating tokens");
+    String accessToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.ACCESS);
+    String refreshToken = jwtTokenProvider.generateToken(authentication, JwtTokenType.REFRESH);
+    log.debug("토큰 생성 완료 - accessToken: {}, refreshToken: {}", accessToken, refreshToken);
+
+    // 마지막 로그인 시간 업데이트
+    member.setLastLoginTime(LocalDateTime.now());
+
+    // 첫 로그인이 아닌 경우 isFirstLogin 속성 업데이트
+    if (!isFirstLogin && member.getIsFirstLogin()) {
+      member.setIsFirstLogin(false);
+    }
+
+    memberRepository.save(member);
+
+    // 리프레시 토큰 저장
+    RefreshToken refreshTokenEntity = RefreshToken.builder()
+        .token(refreshToken)
+        .memberId(member.getMemberId())
+        .memberEmail(member.getEmail())
+        .expiryDate(Instant.now().plusMillis(JwtTokenType.REFRESH.getDurationMilliseconds()))
+        .build();
+    refreshTokenRepository.save(refreshTokenEntity);
+
+    log.info("소셜 로그인 완료 - memberId: {}, isFirstLogin: {}", member.getMemberId(), isFirstLogin);
+    return SocialLoginResponse.builder()
+        .accessToken(accessToken)
+        .refreshToken(refreshToken)
+        .isFirstLogin(isFirstLogin)
+        .build();
+  }
+
   public RefreshAccessTokenByRefreshTokenResponse refreshAccessTokenByRefreshToken(
       RefreshAccessTokenByRefreshTokenRequest request) {
+    // 기존 코드 유지
     log.info("토큰 갱신 요청 시작 - refreshToken: {}", request.getRefreshToken());
     lineLog("Finding refresh token");
 
@@ -163,6 +266,7 @@ public class AuthService {
 
   @Transactional
   public void logout(LogoutRequest request) {
+    // 기존 코드 유지
     log.info("로그아웃 요청 시작 - memberEmail: {}", request.getMember().getEmail());
     lineLog("Finding refresh token");
 

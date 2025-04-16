@@ -6,9 +6,11 @@ import com.suhkang.inquiryingaccident.object.request.LoginRequest;
 import com.suhkang.inquiryingaccident.object.request.LogoutRequest;
 import com.suhkang.inquiryingaccident.object.request.RefreshAccessTokenByRefreshTokenRequest;
 import com.suhkang.inquiryingaccident.object.request.SignupRequest;
+import com.suhkang.inquiryingaccident.object.request.SocialLoginRequest;
 import com.suhkang.inquiryingaccident.object.response.LoginResponse;
 import com.suhkang.inquiryingaccident.object.response.RefreshAccessTokenByRefreshTokenResponse;
 import com.suhkang.inquiryingaccident.object.response.SignUpResponse;
+import com.suhkang.inquiryingaccident.object.response.SocialLoginResponse;
 import com.suhkang.inquiryingaccident.repository.MemberRepository;
 import com.suhkang.inquiryingaccident.service.AuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -40,6 +42,14 @@ public class AuthController implements AuthControllerDocs{
   public ResponseEntity<LoginResponse> login(
       @ModelAttribute LoginRequest loginRequest) {
     return ResponseEntity.ok(authService.login(loginRequest));
+  }
+
+  @Override
+  @PostMapping(value = "/social-login", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+  @LogMethodInvocation
+  public ResponseEntity<SocialLoginResponse> socialLogin(
+      @ModelAttribute SocialLoginRequest socialLoginRequest) {
+    return ResponseEntity.ok(authService.SocialLogin(socialLoginRequest));
   }
 
   @Override

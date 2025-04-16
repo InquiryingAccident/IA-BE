@@ -1,16 +1,18 @@
 package com.suhkang.inquiryingaccident.controller;
 
+import com.suhkang.inquiryingaccident.global.docs.ApiChangeLog;
+import com.suhkang.inquiryingaccident.global.docs.ApiChangeLogs;
 import com.suhkang.inquiryingaccident.object.constants.Author;
 import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
 import com.suhkang.inquiryingaccident.object.request.LoginRequest;
 import com.suhkang.inquiryingaccident.object.request.LogoutRequest;
 import com.suhkang.inquiryingaccident.object.request.RefreshAccessTokenByRefreshTokenRequest;
 import com.suhkang.inquiryingaccident.object.request.SignupRequest;
+import com.suhkang.inquiryingaccident.object.request.SocialLoginRequest;
 import com.suhkang.inquiryingaccident.object.response.LoginResponse;
 import com.suhkang.inquiryingaccident.object.response.RefreshAccessTokenByRefreshTokenResponse;
 import com.suhkang.inquiryingaccident.object.response.SignUpResponse;
-import com.suhkang.inquiryingaccident.global.docs.ApiChangeLog;
-import com.suhkang.inquiryingaccident.global.docs.ApiChangeLogs;
+import com.suhkang.inquiryingaccident.object.response.SocialLoginResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -49,6 +51,40 @@ public interface AuthControllerDocs {
         """
   )
   ResponseEntity<LoginResponse> login(@ModelAttribute LoginRequest loginRequest);
+
+  @ApiChangeLogs({
+      @ApiChangeLog(
+          date = "2025.05.16",
+          author = Author.SUHSAECHAN,
+          issueNumber = 37,
+          description = "소셜 로그인 기능 구현"
+      )
+  })
+  @Operation(
+      summary = "소셜 로그인",
+      description = """
+        ## 인증(JWT): **불필요**
+        
+        ## 참고사항
+        - **`email`**: 이메일 형식에 맞아야 합니다.
+        - **`socialPlatform`**: 소셜 플랫폼 정보 (KAKAO, APPLE, NAVER, GOOGLE 등)
+        - **`socialPlatformId`**: 애플 소셜 로그인 시 필수값, 애플은 첫 로그인에만 ID 정보를 제공하므로 저장 필요
+
+        ## 요청 파라미터 (SocialLoginRequest)
+        - **`email`**: 이메일 주소
+        - **`socialPlatform`**: 소셜 플랫폼 (KAKAO, APPLE, NAVER, GOOGLE, FACEBOOK, TWITTER, INSTAGRAM, LINKEDIN, GITHUB, DISCORD, SLACK)
+        - **`socialPlatformId`**: 소셜 플랫폼 ID (애플 로그인 시 필수)
+                           
+        ## 반환값 (SocialLoginResponse)
+        - **`accessToken`**: 엑세스 토큰
+        - **`refreshToken`**: 리프레쉬 토큰
+        - **`isFirstLogin`**: 첫 로그인 여부 (true/false)
+
+        ## 에러코드
+        - **`MEMBER_NOT_FOUND`**: 회원을 찾을 수 없습니다.
+        """
+  )
+  ResponseEntity<SocialLoginResponse> socialLogin(@ModelAttribute SocialLoginRequest socialLoginRequest);
 
   @ApiChangeLogs({
       @ApiChangeLog(
@@ -159,5 +195,6 @@ public interface AuthControllerDocs {
   ResponseEntity<Void> logout(
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
       @ModelAttribute LogoutRequest request );
+
 
 }
