@@ -31,6 +31,7 @@ import java.util.Optional;
 import java.util.Set;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import me.suhsaechan.suhnicknamegenerator.core.SuhRandomKit;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -49,6 +50,12 @@ public class AuthService {
   private final PasswordEncoder passwordEncoder;
   private final AuthenticationManager authenticationManager;
   private final JwtTokenProvider jwtTokenProvider;
+  SuhRandomKit suhRandomKit = SuhRandomKit.builder()
+      .locale("ko")
+      .numberLength(4)
+      .uuidLength(4)
+      .build();
+
 
   public SignUpResponse signup(SignupRequest request) {
     // 기존 코드 유지
@@ -206,6 +213,7 @@ public class AuthService {
           .email(request.getEmail())
           .socialPlatform(request.getSocialPlatform())
           .socialPlatformId(request.getSocialPlatformId())
+          .nickname(suhRandomKit.simpleNickname())
           .roles(new HashSet<>(Set.of(Role.ROLE_USER)))
           .accountStatus(AccountStatus.ACTIVE)
           .isFirstLogin(true)

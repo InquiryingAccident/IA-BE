@@ -54,6 +54,12 @@ public interface AuthControllerDocs {
 
   @ApiChangeLogs({
       @ApiChangeLog(
+          date = "2025.04.21",
+          author = Author.SUHSAECHAN,
+          issueNumber = 46,
+          description = "랜덤닉네임 생성 로직 추가"
+      ),
+      @ApiChangeLog(
           date = "2025.04.16",
           author = Author.SUHSAECHAN,
           issueNumber = 37,
