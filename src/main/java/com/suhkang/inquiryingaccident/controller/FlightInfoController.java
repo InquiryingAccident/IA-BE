@@ -1,6 +1,5 @@
 package com.suhkang.inquiryingaccident.controller;
 
-import com.suhkang.inquiryingaccident.global.log.LogMethodInvocation;
 import com.suhkang.inquiryingaccident.object.dao.Aircraft;
 import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
 import com.suhkang.inquiryingaccident.object.request.AircraftInfoByModelCodeRequest;
@@ -11,6 +10,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
+import me.suhsaechan.suhlogger.annotation.LogMonitor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -31,7 +31,7 @@ public class FlightInfoController implements FlightInfoControllerDocs{
    * FlightAware API를 호출하여 항공편 정보를 조회
    */
   @PostMapping(value = "/registration/search", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @LogMethodInvocation
+  @LogMonitor
   public ResponseEntity<FlightInfoByFlightAwareApiResponse> getFlightInfo(
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
       @ModelAttribute FlightInfoByFlightAwareApiRequest request) {
@@ -43,7 +43,7 @@ public class FlightInfoController implements FlightInfoControllerDocs{
    * 항공기 코드로 항공기 정보 조회 (예: A319)
    */
   @PostMapping(value = "/type/model-code", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @LogMethodInvocation
+  @LogMonitor
   public ResponseEntity<Aircraft> getAircraftTypeInfo(
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
       @ModelAttribute @Valid AircraftInfoByModelCodeRequest request){
@@ -54,7 +54,7 @@ public class FlightInfoController implements FlightInfoControllerDocs{
    * 전체 항공기 코드 리스트 반환
    */
   @PostMapping(value = "/get/model-codes")
-  @LogMethodInvocation
+  @LogMonitor
   public ResponseEntity<List<String>> getAllAircraftModelCodes(
       @AuthenticationPrincipal CustomUserDetails customUserDetails) {
     return ResponseEntity.ok(flightInfoService.getAllAircraftModelCodes());
