@@ -5,9 +5,19 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
 import java.util.Random;
+import me.suhsaechan.suhnicknamegenerator.core.SuhRandomKit;
 
 public class CommonUtil {
 	private final Random random = new Random();
+	private static final SuhRandomKit suhRandomKit = SuhRandomKit.builder().uuidLength(4).numberLength(4).enableAdultContent(true).build();
+
+	public static String getRandomNickname() {
+		return suhRandomKit.nicknameWithNumber();
+	}
+
+	public static String getRandomMatureNickname() {
+		return suhRandomKit.matureNicknameWithNumber();
+	}
 
 	private int getRandomNumber(int min, int max) {
 		if (min == max) {

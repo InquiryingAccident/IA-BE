@@ -1,6 +1,5 @@
 package com.suhkang.inquiryingaccident.controller;
 
-import com.suhkang.inquiryingaccident.global.log.LogMethodInvocation;
 import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
 import com.suhkang.inquiryingaccident.object.request.SearchAccidentInfoRequest;
 import com.suhkang.inquiryingaccident.object.request.searchAccidentInfoByRegistrationRequest;
@@ -9,6 +8,7 @@ import com.suhkang.inquiryingaccident.object.response.searchAccidentInfoByRegist
 import com.suhkang.inquiryingaccident.service.PlaneAccidentService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import me.suhsaechan.suhlogger.annotation.LogMonitor;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
@@ -29,7 +29,7 @@ public class PlaneAccidentController implements PlaneAccidentControllerDocs{
   private final PlaneAccidentService planeAccidentService;
 
   @PostMapping(value = "/filter/search", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @LogMethodInvocation
+  @LogMonitor
   public ResponseEntity<SearchAccidentInfoResponse> searchAccidentInfo(
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
       @ModelAttribute SearchAccidentInfoRequest request
@@ -38,7 +38,7 @@ public class PlaneAccidentController implements PlaneAccidentControllerDocs{
   }
 
   @PostMapping(value = "/registration/search", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @LogMethodInvocation
+  @LogMonitor
   public ResponseEntity<searchAccidentInfoByRegistrationResponse> searchAccidentInfoByRegistration(
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
       @ModelAttribute searchAccidentInfoByRegistrationRequest request

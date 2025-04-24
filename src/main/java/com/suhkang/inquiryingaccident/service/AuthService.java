@@ -54,6 +54,7 @@ public class AuthService {
       .locale("ko")
       .numberLength(4)
       .uuidLength(4)
+      .enableAdultContent(true)
       .build();
 
 
@@ -213,7 +214,7 @@ public class AuthService {
           .email(request.getEmail())
           .socialPlatform(request.getSocialPlatform())
           .socialPlatformId(request.getSocialPlatformId())
-          .nickname(suhRandomKit.simpleNickname())
+          .nickname(suhRandomKit.matureNickname())
           .roles(new HashSet<>(Set.of(Role.ROLE_USER)))
           .accountStatus(AccountStatus.ACTIVE)
           .isFirstLogin(true)

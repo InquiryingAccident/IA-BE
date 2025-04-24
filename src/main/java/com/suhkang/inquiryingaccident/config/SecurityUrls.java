@@ -12,14 +12,18 @@ public class SecurityUrls {
    * 인증을 생략할 URL 패턴 목록
    */
   public static final List<String> AUTH_WHITELIST = Arrays.asList(
-      // API
 
+      // API
       "/api/auth/signup",              // 회원가입
       "/api/auth/social-login",        // 소셜 로그인 및 소셜 회원가입
       "/api/auth/login",               // 로그인
       "/api/auth/refresh",             // 리프레시 토큰
       "/api/test/**",                  //FIXME: 테스트 API
       "/api/member/check-email",       // 이메일 중복 확인
+
+      // Test
+      "/api/member/random-nickname",
+      "/api/member/random-mature-nickname",
 
       // Swagger
       "/docs/**",                      // Swagger UI

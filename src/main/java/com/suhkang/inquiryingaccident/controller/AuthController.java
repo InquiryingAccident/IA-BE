@@ -1,6 +1,5 @@
 package com.suhkang.inquiryingaccident.controller;
 
-import com.suhkang.inquiryingaccident.global.log.LogMethodInvocation;
 import com.suhkang.inquiryingaccident.object.dto.CustomUserDetails;
 import com.suhkang.inquiryingaccident.object.request.LoginRequest;
 import com.suhkang.inquiryingaccident.object.request.LogoutRequest;
@@ -15,6 +14,7 @@ import com.suhkang.inquiryingaccident.repository.MemberRepository;
 import com.suhkang.inquiryingaccident.service.AuthService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import me.suhsaechan.suhlogger.annotation.LogMonitor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -38,7 +38,7 @@ public class AuthController implements AuthControllerDocs{
 
   @Override
   @PostMapping(value = "/login", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @LogMethodInvocation
+  @LogMonitor
   public ResponseEntity<LoginResponse> login(
       @ModelAttribute LoginRequest loginRequest) {
     return ResponseEntity.ok(authService.login(loginRequest));
@@ -46,7 +46,7 @@ public class AuthController implements AuthControllerDocs{
 
   @Override
   @PostMapping(value = "/social-login", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @LogMethodInvocation
+  @LogMonitor
   public ResponseEntity<SocialLoginResponse> socialLogin(
       @ModelAttribute SocialLoginRequest socialLoginRequest) {
     return ResponseEntity.ok(authService.SocialLogin(socialLoginRequest));
@@ -54,7 +54,7 @@ public class AuthController implements AuthControllerDocs{
 
   @Override
   @PostMapping(value = "/signup", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @LogMethodInvocation
+  @LogMonitor
   public ResponseEntity<SignUpResponse> signup(
       @ModelAttribute SignupRequest signupRequest) {
     authService.signup(signupRequest);
@@ -63,14 +63,14 @@ public class AuthController implements AuthControllerDocs{
 
   @Override
   @PostMapping(value = "/refresh", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @LogMethodInvocation
+  @LogMonitor
   public ResponseEntity<RefreshAccessTokenByRefreshTokenResponse> refreshAccessTokenByRefreshToken(
       @ModelAttribute RefreshAccessTokenByRefreshTokenRequest request) {
     return ResponseEntity.ok(authService.refreshAccessTokenByRefreshToken(request));
   }
 
   @PostMapping(value = "/logout", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-  @LogMethodInvocation
+  @LogMonitor
   public ResponseEntity<Void> logout(
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
       @ModelAttribute LogoutRequest request) {
