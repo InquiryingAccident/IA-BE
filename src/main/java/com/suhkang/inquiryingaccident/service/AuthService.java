@@ -214,7 +214,7 @@ public class AuthService {
           .email(request.getEmail())
           .socialPlatform(request.getSocialPlatform())
           .socialPlatformId(request.getSocialPlatformId())
-          .nickname(suhRandomKit.matureNickname())
+          .nickname(suhRandomKit.politicianNickname())
           .roles(new HashSet<>(Set.of(Role.ROLE_USER)))
           .accountStatus(AccountStatus.ACTIVE)
           .isFirstLogin(true)
