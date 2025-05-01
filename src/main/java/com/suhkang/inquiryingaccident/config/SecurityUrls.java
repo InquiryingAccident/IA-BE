@@ -24,6 +24,7 @@ public class SecurityUrls {
       // Test
       "/api/member/random-nickname",
       "/api/member/random-mature-nickname",
+      "/api/member/random-politician-nickname",
 
       // Swagger
       "/docs/**",                      // Swagger UI

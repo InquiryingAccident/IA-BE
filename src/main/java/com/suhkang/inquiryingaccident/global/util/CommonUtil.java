@@ -19,6 +19,10 @@ public class CommonUtil {
 		return suhRandomKit.matureNicknameWithNumber();
 	}
 
+	public static String getRandomPoliticianNickname() {
+		return suhRandomKit.politicianNickname();
+	}
+
 	private int getRandomNumber(int min, int max) {
 		if (min == max) {
 			return min;

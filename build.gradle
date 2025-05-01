@@ -108,7 +108,7 @@ dependencies {
     annotationProcessor 'org.mapstruct:mapstruct-processor:1.5.5.Final'
 
     // Suh-Random-Engine
-    implementation 'me.suhsaechan:suh-random-engine:1.0.2'
+    implementation 'me.suhsaechan:suh-random-engine:1.1.0'
 
     // Suh-Logger
     implementation 'me.suhsaechan:suh-logger:1.0.3'

@@ -64,4 +64,10 @@ public class MemberController implements MemberControllerDocs {
     return ResponseEntity.ok(CommonUtil.getRandomMatureNickname());
   }
 
+  @PostMapping(value = "/random-politician-nickname")
+  @LogMonitor
+  public ResponseEntity<String> getRandomPoliticianNickname(){
+    return ResponseEntity.ok(CommonUtil.getRandomPoliticianNickname());
+  }
+
 }
